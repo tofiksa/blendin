@@ -1,26 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Warm, minimalist “office cozy” default; tenants can override later */
+  --background: #faf6f0;
+  --foreground: #2c2419;
+  --muted: #6b5c4c;
+  --accent: #8b5a2b;
+  --accent-soft: #e8d5c4;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1a1612;
+    --foreground: #f4ebe3;
+    --muted: #b9a995;
+    --accent: #c9a066;
+    --accent-soft: #3d3329;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

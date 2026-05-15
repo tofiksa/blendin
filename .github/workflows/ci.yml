@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run build
+
+      - run: npm test
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run test:e2e
+
+  flyway-and-database-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: blend
+          POSTGRES_PASSWORD: blend
+          POSTGRES_DB: blendin
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U blend -d blendin"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://blend:blend@localhost:5432/blendin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Flyway CLI
+        env:
+          FLYWAY_VERSION: "11.7.2"
+        run: |
+          curl -fsSL -o flyway.tgz \
+            "https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/${FLYWAY_VERSION}/flyway-commandline-${FLYWAY_VERSION}-linux-x64.tar.gz"
+          tar -xzf flyway.tgz
+          sudo ln -sf "$PWD/flyway-${FLYWAY_VERSION}/flyway" /usr/local/bin/flyway
+          flyway -v
+
+      - name: Flyway migrate
+        run: |
+          flyway -locations=filesystem:migrations \
+            -url=jdbc:postgresql://localhost:5432/blendin \
+            -user=blend \
+            -password=blend \
+            migrate
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test

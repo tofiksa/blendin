@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blend-In
 
-## Getting Started
+Lun onboarding-quiz (App Router · Next.js · Tailwind · Biome · Playwright).
 
-First, run the development server:
+Prosjektmappa bruker **camelCase**: `blendIn` (ikke `blend-in`).
+
+## Konvensjoner
+
+- **TypeScript/React:** `camelCase` for variabler/funksjoner, `PascalCase` for komponenter.
+- **Filer du legger til selv** (under `lib/`, hooks, utils): foretrekk **camelCase** filnavn, f.eks. `sessionStore.ts`. Next.js krever fortsatt fast navn på ruter (`page.tsx`, `layout.tsx`, `route.ts`).
+- **SQL:** `snake_case` for tabeller og kolonner (Postgres-idiom).
+- **npm-pakke-navn** i `package.json`: `blendIn` (camelCase).
+
+## Lokalt
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Kodekvalitet: `npm run lint` / `npm run format`
+- Integrasjonstester (PostgreSQL — **skipped** om `DATABASE_URL` mangler): `npm run test`
+- E2E (starter dev-server automatisk): `npm run test:e2e`
+- Første gang Playwright: `npm run setup:playwright`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Kopier `.env.example` til `.env` og sett `DATABASE_URL` når databasetilkobling er klar.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## HTTP API (MVP, JSON)
 
-## Learn More
+Felles: **admin** krever header `Authorization: Bearer <BLEND_ADMIN_SECRET>`. **Nyansatt** bruker `?nh=<token>` (returneres én gang ved `POST` admin opprett økt). **Team** bruker klartekst-token i path (`/api/join/...`), lagret som SHA-256 i databasen.
 
-To learn more about Next.js, take a look at the following resources:
+| Metode | Path | Formål |
+|--------|------|--------|
+| POST | `/api/admin/tenants/by-slug/demo/sessions` | Opprett økt (`mode`, valgfri `teamLinkCount`, `quizTemplateName`). Svar inneholder `urls` + klartekst-tokens. |
+| PATCH | `/api/admin/sessions/:publicId` | Endre `state` (fasilitator). |
+| GET/PATCH/POST | `/api/sessions/:publicId/new-hire?nh=…` | Les utkast/lagre/fullfør nyansatt (`answers` med `confidenceBand`). |
+| GET/POST | `/api/join/:plainToken` | Hent quiz / lever gjetting (`guesses`, valgfri `displayName`). `409` hvis allerede sendt inn. |
+| GET | `/api/tenants/by-slug/:slug` | Offentlig branding (krever migrert DB). |
+| GET | `/api/health` | Liveness + databasefelt. |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Database (Flyway)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Flyway-skript ligger i **`migrations/`** (f.eks. `V1__blend_in_initial.sql`). Kjør Flyway mot samme PostgreSQL som Sliplane bruker, med `locations` pekende på den mappa — eller kjør CLI fra prosjektroten:
 
-## Deploy on Vercel
+### Lokal Postgres
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+docker compose up -d
+export DATABASE_URL=postgresql://blend:blend@localhost:5432/blendin
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deretter kjør Flyway (eksempel):
+
+```bash
+flyway -locations=filesystem:migrations \
+  -url=jdbc:postgresql://localhost:5432/blendin \
+  -user=blend \
+  -password=blend migrate
+```
+
+Og verifiser data med integrasjonstester:
+
+```bash
+npm test
+```
+
+### Produksjon / Sliplane
+
+```bash
+flyway -locations=filesystem:migrations -url="$JDBC_URL" -user="..." -password="..." migrate
+```
+
+## Docker (Sliplane)
+
+Bygg og kjør containeren lokalt:
+
+```bash
+docker build -t blendIn .
+docker run --rm -p 3000:3000 -e DATABASE_URL=... blendIn
+```
+
+Helsesjekk: `GET /api/health`.
+
+## Git
+
+Repoet er initialisert med `git init`. Opprett et tomt repo på GitHub/GitLab og:
+
+```bash
+git remote add origin <ssh-eller-https-url>
+git add .
+git commit -m "Initial commit"
+git push -u origin main
+```
+
+(Committ kun når du er klar — ikke sjekk inn `.env`.)

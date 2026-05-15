@@ -1,26 +1,45 @@
 {
-  "name": "blend-in",
+  "name": "blendIn",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "setup:playwright": "playwright install --with-deps chromium"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "nanoid": "^5.1.6",
     "next": "16.2.6",
+    "pg": "^8.14.1",
+    "qrcode": "^1.5.4",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "zod": "^3.25.36"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.11.13",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "3.1.4"
+  },
+  "overrides": {
+    "postcss": ">=8.5.10",
+    "vite": "^6.4.2"
   }
 }
