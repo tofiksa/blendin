@@ -2,6 +2,9 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AdminQuizQuestionPreview } from "@/components/admin/AdminQuizQuestionPreview";
+import { ExistingTenantQuizPack } from "@/components/admin/ExistingTenantQuizPack";
+import { TenantQuizBootstrap } from "@/components/admin/TenantQuizBootstrap";
 import { demoQuizTemplateName } from "@/lib/constants";
 
 const STORAGE_KEY = "blendin_admin_bearer";
@@ -61,6 +64,8 @@ export function AdminDashboard() {
   const [mode, setMode] = useState<"async" | "live">("async");
   const [teamLinkCount, setTeamLinkCount] = useState(14);
   const [quizTemplateName, setQuizTemplateName] = useState("");
+  const [quizTemplateList, setQuizTemplateList] = useState<{ id: string; name: string }[]>([]);
+  const [quizTemplatesLoadErr, setQuizTemplatesLoadErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [formErr, setFormErr] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedSessionResponse | null>(null);
@@ -113,6 +118,46 @@ export function AdminDashboard() {
     };
   }, [tenantSlug]);
 
+  useEffect(() => {
+    const secret = bearer.trim();
+    const slug = tenantSlug.trim();
+    if (!secret || !slug) {
+      setQuizTemplateList([]);
+      setQuizTemplatesLoadErr(null);
+      return;
+    }
+    const ac = new AbortController();
+    const timer = window.setTimeout(() => {
+      void fetch(`/api/admin/tenants/by-slug/${encodeURIComponent(slug)}/quiz-templates`, {
+        headers: { Authorization: `Bearer ${secret}` },
+        signal: ac.signal,
+      })
+        .then(async (r) => {
+          const body: unknown = await r.json();
+          if (!r.ok) {
+            const msg =
+              typeof body === "object" && body !== null && "error" in body
+                ? String((body as { error: unknown }).error)
+                : `Feil ${r.status}`;
+            throw new Error(msg);
+          }
+          const templates =
+            (body as { templates?: { id: string; name: string }[] }).templates ?? [];
+          setQuizTemplateList(templates);
+          setQuizTemplatesLoadErr(null);
+        })
+        .catch((e: unknown) => {
+          if (e instanceof Error && e.name === "AbortError") return;
+          setQuizTemplateList([]);
+          setQuizTemplatesLoadErr(e instanceof Error ? e.message : "Kunne ikke hente mal-liste.");
+        });
+    }, 400);
+    return () => {
+      ac.abort();
+      window.clearTimeout(timer);
+    };
+  }, [bearer, tenantSlug]);
+
   const saveBearer = useCallback(() => {
     const t = bearer.trim();
     try {
@@ -124,6 +169,11 @@ export function AdminDashboard() {
     setBearerSaved(Boolean(t));
     setFormErr(null);
   }, [bearer]);
+
+  const onQuizPackCreated = useCallback((info: { slug: string; quizTemplateName: string }) => {
+    setTenantSlug(info.slug);
+    setQuizTemplateName(info.quizTemplateName);
+  }, []);
 
   const displayUrls = useMemo(() => {
     if (!created) return null;
@@ -264,6 +314,15 @@ export function AdminDashboard() {
         {bearerSaved ? <p className="text-xs text-muted">Token lagret for denne økten.</p> : null}
       </section>
 
+      <TenantQuizBootstrap bearer={bearer} onPackCreated={onQuizPackCreated} />
+
+      <ExistingTenantQuizPack
+        bearer={bearer}
+        tenantSlug={tenantSlug}
+        onTenantSlugChange={setTenantSlug}
+        onQuizTemplateCreated={(name) => setQuizTemplateName(name)}
+      />
+
       <section className="space-y-4 rounded-2xl border border-accent-soft bg-background/80 p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-foreground">Tenant</h2>
         <div className="space-y-2">
@@ -347,15 +406,43 @@ export function AdminDashboard() {
           </label>
           <input
             id="quiz-template"
+            list="admin-quiz-template-options"
             value={quizTemplateName}
             onChange={(e) => setQuizTemplateName(e.target.value)}
             placeholder={demoQuizTemplateName}
+            autoComplete="off"
             className="w-full rounded-xl border border-accent-soft bg-background px-3 py-2 text-sm"
           />
+          <datalist id="admin-quiz-template-options">
+            {quizTemplateList.map((t) => (
+              <option key={t.id} value={t.name} />
+            ))}
+          </datalist>
           <p className="text-xs text-muted">
-            Tom = standard demo-mal (<span className="font-mono">{demoQuizTemplateName}</span>).
+            Tom felt bruker standard demo-mal (
+            <span className="font-mono">{demoQuizTemplateName}</span>) når den finnes for tenanten.
+            Skriv eller velg fra forslag — navnet må stemme nøyaktig.
           </p>
+          {bearer.trim() && tenantSlug.trim() && quizTemplatesLoadErr ? (
+            <p className="text-xs text-accent">{quizTemplatesLoadErr}</p>
+          ) : null}
+          {bearer.trim() &&
+          tenantSlug.trim() &&
+          !quizTemplatesLoadErr &&
+          quizTemplateList.length > 0 ? (
+            <p className="text-xs text-muted">
+              {quizTemplateList.length} mal(er) for denne tenanten.
+            </p>
+          ) : null}
         </div>
+
+        <AdminQuizQuestionPreview
+          key={`${tenantSlug.trim().toLowerCase()}:${quizTemplateName.trim()}`}
+          bearer={bearer}
+          tenantSlug={tenantSlug}
+          quizTemplateName={quizTemplateName}
+        />
+
         {formErr ? <p className="text-sm text-accent">{formErr}</p> : null}
         <button
           type="button"

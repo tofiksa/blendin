@@ -19,7 +19,7 @@ This repo targets **Next.js 16** with the **App Router**. APIs and conventions m
 - **Admin API auth (MVP):** `BLEND_ADMIN_SECRET` env + `Authorization: Bearer <secret>` on `/api/admin/**`.
 - **Deploy:** Docker (`Dockerfile`, `output: "standalone"`).
 
-Key HTTP routes live under `app/api/` (`admin/**`, `sessions/**`, `join/**`).
+Key HTTP routes live under `app/api/` (`admin/**` inkl. `tenant-quiz-pack`, `GET /api/admin/tenants`, `GET .../quiz-templates`, `GET .../quiz-question`, `POST .../quiz-pack`, økt-opprettelse, `sessions/**`, `join/**`).
 
 ---
 

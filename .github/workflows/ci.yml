@@ -51,6 +51,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://blend:blend@localhost:5432/blendin
+      BLEND_ADMIN_SECRET: ci-playwright-admin-secret
 
     steps:
       - uses: actions/checkout@v4
@@ -81,3 +82,8 @@ jobs:
       - run: npm ci
 
       - run: npm test
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run test:e2e

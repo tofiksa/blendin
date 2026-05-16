@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LiveQuestion } from "@/lib/livePayload";
 import type { ConfidenceBandAllowed } from "@/lib/newHireAnswers";
+import { NEW_HIRE_CONFIDENCE_BANDS } from "@/lib/newHireConfidenceBands";
 
 type SavedAnswerRow = {
   questionId: string;
@@ -21,13 +22,6 @@ type DraftAnswer = {
   optionId: string | null;
   confidenceBand: ConfidenceBandAllowed | null;
 };
-
-const BANDS: Array<{ value: ConfidenceBandAllowed; title: string; hint: string }> = [
-  { value: "pct_0_25", title: "Liten tro", hint: "gjetting" },
-  { value: "pct_26_50", title: "Litt usikker", hint: "åpent sinn" },
-  { value: "pct_51_75", title: "Ganske trygg", hint: "kjennes igjen" },
-  { value: "pct_76_100", title: "Veldig trygg", hint: "helt klart" },
-];
 
 const PATCH_DEBOUNCE_MS = 900;
 
@@ -342,7 +336,7 @@ export function NewHireFlow({ publicId, nhToken }: { publicId: string; nhToken: 
                       Hvor trygg er du på dette svaret?
                     </legend>
                     <div className="grid gap-2 sm:grid-cols-2">
-                      {BANDS.map((b) => {
+                      {NEW_HIRE_CONFIDENCE_BANDS.map((b) => {
                         const picked = draft[q.id]?.confidenceBand === b.value;
                         return (
                           <label
@@ -401,6 +395,6 @@ export function NewHireFlow({ publicId, nhToken }: { publicId: string; nhToken: 
 }
 
 function bandSummary(b: ConfidenceBandAllowed): string {
-  const row = BANDS.find((x) => x.value === b);
+  const row = NEW_HIRE_CONFIDENCE_BANDS.find((x) => x.value === b);
   return row ? `${row.title} (${row.hint})` : b;
 }

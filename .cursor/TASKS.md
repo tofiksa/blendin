@@ -50,6 +50,11 @@ npm test   # kjører bl.a. SELECT 1 + demo-tenant + 10 spørsmål
 - [x] **Typed DB layer** — `lib/db/schema.ts` matcher Flyway.
 - [x] **Tenant resolution** — `readTenantBySlug` + **`GET /api/tenants/by-slug/[slug]`** (**Playwright:** `tests/e2e/tenantApi.spec.ts`).
 - [x] **Admin API** — `BLEND_ADMIN_SECRET` (`Authorization: Bearer …`): `POST /api/admin/tenants/by-slug/[tenantSlug]/sessions`, `PATCH /api/admin/sessions/[publicId]`.
+- [x] **Admin bootstrap API** — `POST /api/admin/tenant-quiz-pack`: atomisk ny tenant + mal (versjon 1, publisert) + spørsmål med **nøyaktig fire** alternativer (`lib/createTenantQuizPack.ts`; `409` ved eksisterende slug).
+- [x] **Admin quiz på eksisterende tenant** — `POST /api/admin/tenants/by-slug/[tenantSlug]/quiz-pack` + `lib/insertPublishedQuizPack.ts` / `createQuizPackForExistingTenantSlug.ts` (`409` ved duplikat mal-navn).
+- [x] **Admin tenant-liste** — `GET /api/admin/tenants` (slug + navn) for nedtrekk i UI.
+- [x] **Admin quiz-mal-liste** — `GET /api/admin/tenants/by-slug/[tenantSlug]/quiz-templates` (`lib/listQuizTemplatesForTenantSlug.ts`); forslag under «Ny økt» via `<datalist>`.
+- [x] **Admin quiz-forhåndsvisning** — `GET /api/admin/tenants/by-slug/[tenantSlug]/quiz-question` (`lib/fetchQuizQuestionPreviewForAdmin.ts`) + `AdminQuizQuestionPreview` under «Ny økt».
 - [x] **Nyansatt API** — `GET` / `PATCH` / `POST` på **`/api/sessions/[publicId]/new-hire?nh=`** … (utkast → lås → `team_collecting`).
 - [x] **Team API** — `GET` / `POST` **`/api/join/[plainToken]`** (`409` ved duplikat-innsending).
 - [x] **Aggregation** — flertall, ties, persist `session_question_result`.
@@ -59,7 +64,8 @@ npm test   # kjører bl.a. SELECT 1 + demo-tenant + 10 spørsmål
 
 ## Frontend
 
-- [x] **Admin UI** — MVP: `/admin` (Bearer i nettleser), tenant-preview, opprett økt, lenker + QR, tekniske token. Mer: branding/quiz-CRUD, redigering i UI.
+- [x] **Admin UI** — MVP: `/admin` (Bearer i nettleser), tenant-preview, opprett økt, lenker + QR, tekniske token.
+- [x] **Admin quiz-builder** — «Ny tenant og quiz» + merking; «Ny mal på eksisterende tenant»; mal-forslag + **forhåndsvis ett spørsmål** på «Ny økt» (`quiz-templates`, `quiz-question`, `AdminQuizQuestionPreview`).
 - [x] **New hire UI** — `/nyansatt/[publicId]?nh=` · alle MC + trygghet-bånd, auto-lagring (PATCH), låst oppsummering.
 - [x] **Team UI** — `/lag/[token]` gjetteflyt + mobil-follower på samme URL (`SessionLiveClient`); admin QR på lag-URL.
 - [x] **Presenter UI** — Full-screen reveal (kopp, facilitator-dokk, reveal-slide, harmoni, lyd-MVP). Mer polish underveis.
@@ -67,6 +73,24 @@ npm test   # kjører bl.a. SELECT 1 + demo-tenant + 10 spørsmål
 - [x] **Cup illustration** — SVG-kopp med fyllnivå (MVP) · visuell polish.
 - [x] **Audio** — Web Audio «pour»-klang med mute og motion-valg (MVP) · dedikert lydfil senere.
 - [x] **End screen** — Harmoni-slutt basert på treffrate (MVP) · «Coffee Ground Prophecy»-copy senere.
+
+---
+
+## Admin — videre arbeid (tenant / quiz)
+
+Implementert: bootstrap (**ny slug**), **ny mal på eksisterende tenant**, **tenant-nedtrekk**, **mal-forslag på Ny økt**, **forhåndsvisning nyansatt-layout**, **branding-felt** på ny-tenant-skjema. Full CRUD mangler.
+
+- [x] **Eksisterende tenant** — `POST .../quiz-pack` + `ExistingTenantQuizPack`.
+- [x] **Branding i UI** — Valgfri logo + farger under «Ny tenant og quiz».
+- [x] **Liste / valg (tenant)** — `GET /api/admin/tenants` + nedtrekk.
+- [ ] **Redigering** — PATCH slettes/endrer spørsmål og alternativer på en publisert eller kladd-mal (versjonering eller «kun før første økt» policy må avklares).
+- [x] **Forhåndsvisning** — `GET .../quiz-question` + navigering spørsmål for/mot; valgfritt trygghet-bånd (`AdminQuizQuestionPreview`, delte `NEW_HIRE_CONFIDENCE_BANDS`).
+- [x] **Liste / valg (mal)** — `GET .../quiz-templates` + `<datalist>` på quiz-mal under «Ny økt» (fortsatt fritekst mulig).
+- [x] **Playwright** — E2E: `tests/e2e/adminTenantBootstrap.spec.ts` (disposable slug); kjører med DB + `BLEND_ADMIN_SECRET` (`.env.local` eller CI flyway-job); hoppes over i «tom» DB-jobb.
+
+Mer fra tidligere backlog:
+
+- [ ] Mer: quiz-mal kopiert fra demo · sletting av tenant · import/export JSON.
 
 ---
 
