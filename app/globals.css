@@ -1,12 +1,108 @@
 @import "tailwindcss";
 
 :root {
-  /* Warm, minimalist “office cozy” default; tenants can override later */
-  --background: #faf6f0;
-  --foreground: #2c2419;
-  --muted: #6b5c4c;
-  --accent: #8b5a2b;
-  --accent-soft: #e8d5c4;
+  /* Office-Cozy Minimalism — Blend-In design system */
+  --background: #fbf9f5;
+  --foreground: #1b1c1a;
+  --muted: #4f4540;
+  --accent: #7d562d;
+  --accent-soft: #fbdcce;
+
+  /* Extended palette from Stitch design system */
+  --surface-white: #ffffff;
+  --surface-container: #efeeea;
+  --surface-container-low: #f5f3ef;
+  --surface-container-high: #eae8e4;
+  --surface-container-highest: #e4e2de;
+  --primary: #25160e;
+  --primary-container: #3c2a21;
+  --secondary: #7d562d;
+  --secondary-container: #ffca98;
+  --outline: #81756f;
+  --outline-variant: #d3c3bd;
+  --airy-blue: #e0f2fe;
+  --error: #ba1a1a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-surface-white: var(--surface-white);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-secondary: var(--secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-airy-blue: var(--airy-blue);
+  --color-error: var(--error);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1a1612;
+    --foreground: #f4ebe3;
+    --muted: #b9a995;
+    --accent: #c9a066;
+    --accent-soft: #3d3329;
+    --surface-white: #252220;
+    --surface-container: #2a2724;
+    --surface-container-low: #211f1c;
+    --surface-container-high: #322f2c;
+    --surface-container-highest: #3a3734;
+    --primary: #dec1b3;
+    --primary-container: #574238;
+    --secondary: #f0bd8b;
+    --secondary-container: #623f18;
+    --outline: #9e9490;
+    --outline-variant: #4f4540;
+    --airy-blue: #1a3045;
+    --error: #ffb4ab;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Shared animation utilities */
+@keyframes fill-up {
+  0% {
+    height: 0%;
+  }
+  100% {
+    height: var(--fill-target, 50%);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pour-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 @theme inline {

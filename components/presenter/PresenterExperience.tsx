@@ -37,7 +37,7 @@ function formatState(state: string): string {
     team_collecting: "Team gjetter",
     ready_to_reveal: "Klar til reveal",
     revealing: "Reveal",
-    completed: "Fullført",
+    completed: "Fullfort",
   };
   return map[state] ?? state;
 }
@@ -45,10 +45,10 @@ function formatState(state: string): string {
 function harmonyCopy(matches: number, total: number): string {
   if (total <= 0) return "Vi starter straks.";
   const ratio = matches / total;
-  if (ratio >= 0.9) return "Helt perfekt blandet · dere smaker på samme bønne.";
-  if (ratio >= 0.72) return "Sterk harmoni · litt mer melk og småprat så er dere i mål.";
-  if (ratio >= 0.45) return "God start · kaffen trenger litt mer tid på trakteren.";
-  return "Ekte variasjon · perfekt unnskyldning for en ekstra runde.";
+  if (ratio >= 0.9) return "Helt perfekt blandet — dere smaker pa samme bonne.";
+  if (ratio >= 0.72) return "Sterk harmoni — litt mer melk og smaprat sa er dere i mal.";
+  if (ratio >= 0.45) return "God start — kaffen trenger litt mer tid pa trakteren.";
+  return "Ekte variasjon — perfekt unnskyldning for en ekstra runde.";
 }
 
 async function adminPatch(publicId: string, bearer: string, body: Record<string, unknown>) {
@@ -97,11 +97,11 @@ export function PresenterExperience({ publicId }: Props) {
       .then(async (r) => {
         const body: unknown = await r.json();
         if (!r.ok && isLiveErrorPayload(body)) throw new Error(body.error);
-        if (!r.ok) throw new Error("Kunne ikke laste økt.");
+        if (!r.ok) throw new Error("Kunne ikke laste okt.");
         if (!cancelled) setSnapshot(body as LivePayload);
       })
       .catch(() => {
-        if (!cancelled) setStreamError("Kunne ikke laste økt.");
+        if (!cancelled) setStreamError("Kunne ikke laste okt.");
       });
     return () => {
       cancelled = true;
@@ -122,10 +122,10 @@ export function PresenterExperience({ publicId }: Props) {
         setSnapshot(parsed as LivePayload);
         setStreamError(null);
       } catch {
-        setStreamError("Ugyldig data fra strømmen.");
+        setStreamError("Ugyldig data fra strommen.");
       }
     };
-    es.onerror = () => setStreamError("Live-strøm mistet — oppdater siden.");
+    es.onerror = () => setStreamError("Live-strom mistet — oppdater siden.");
     return () => es.close();
   }, [publicId]);
 
@@ -235,7 +235,7 @@ export function PresenterExperience({ publicId }: Props) {
         await adminPatch(publicId, bearer.trim(), { currentQuestionIndex: idx + 1 });
       else await adminPatch(publicId, bearer.trim(), { state: "completed" });
     } catch (err) {
-      setFacilitatorError(err instanceof Error ? err.message : "Kunne ikke oppdatere økt.");
+      setFacilitatorError(err instanceof Error ? err.message : "Kunne ikke oppdatere okt.");
     }
   }, [bearer, bearerReady, idx, maxIdx, publicId, snapshot]);
 
@@ -246,7 +246,7 @@ export function PresenterExperience({ publicId }: Props) {
     try {
       await adminPatch(publicId, bearer.trim(), { currentQuestionIndex: idx - 1 });
     } catch (err) {
-      setFacilitatorError(err instanceof Error ? err.message : "Kunne ikke oppdatere økt.");
+      setFacilitatorError(err instanceof Error ? err.message : "Kunne ikke oppdatere okt.");
     }
   }, [bearer, bearerReady, idx, publicId, snapshot]);
 
@@ -257,7 +257,7 @@ export function PresenterExperience({ publicId }: Props) {
       try {
         await adminPatch(publicId, bearer.trim(), { state: next });
       } catch (err) {
-        setFacilitatorError(err instanceof Error ? err.message : "Kunne ikke oppdatere økt.");
+        setFacilitatorError(err instanceof Error ? err.message : "Kunne ikke oppdatere okt.");
       }
     },
     [bearer, bearerReady, publicId],
@@ -300,87 +300,143 @@ export function PresenterExperience({ publicId }: Props) {
   }, [currentResult]);
 
   return (
-    <div className="relative flex min-h-dvh flex-col bg-background text-foreground">
-      <header className="flex shrink-0 items-start justify-between gap-4 border-b border-accent-soft px-6 py-4 sm:px-10">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted">
-            Blend-In · presenter
-          </p>
-          <p className="mt-1 font-mono text-sm text-muted">{publicId}</p>
+    <div className="relative flex min-h-dvh flex-col bg-primary-container text-primary">
+      {/* Top bar */}
+      <header className="flex shrink-0 items-center justify-between gap-4 px-8 py-5 lg:px-12">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-secondary-container/30">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              className="text-secondary-container"
+              aria-hidden="true"
+            >
+              <path
+                d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M6 1v3M10 1v3M14 1v3"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-secondary-container/80">Blend-In</p>
+            <p className="font-mono text-xs text-secondary-container/50">{publicId}</p>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-muted">
-            <input type="checkbox" checked={!muted} onChange={(e) => setMuted(!e.target.checked)} />
+        <div className="flex items-center gap-3">
+          <span className="rounded-full bg-secondary-container/20 px-3 py-1 text-xs font-semibold text-secondary-container">
+            {formatState(state)}
+          </span>
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-secondary-container/60">
+            <input
+              type="checkbox"
+              checked={!muted}
+              onChange={(e) => setMuted(!e.target.checked)}
+              className="accent-secondary"
+            />
             Lyd
           </label>
           <button
             type="button"
             onClick={() => setDockOpen((v) => !v)}
-            className="rounded-full bg-accent-soft px-4 py-2 text-sm font-medium text-foreground hover:opacity-90"
+            className="rounded-2xl bg-secondary-container/20 px-4 py-2 text-sm font-semibold text-secondary-container transition-colors hover:bg-secondary-container/30"
           >
-            Facilitator {dockOpen ? "▼" : "▸"}
+            Fasilitator
           </button>
         </div>
       </header>
 
-      <div className="flex flex-1 flex-col gap-8 px-6 py-8 lg:flex-row lg:items-stretch lg:justify-between lg:gap-12 lg:px-12 lg:py-10">
-        <main className="flex flex-1 flex-col justify-center lg:max-w-[62%]">
-          {!snapshot && !streamError ? <p className="text-xl text-muted">Laster koppen …</p> : null}
+      {/* Main content area */}
+      <div className="flex flex-1 flex-col gap-8 px-8 pb-8 lg:flex-row lg:items-center lg:gap-16 lg:px-12">
+        {/* Left: content */}
+        <main className="flex flex-1 flex-col justify-center lg:max-w-[60%]">
+          {!snapshot && !streamError ? (
+            <p className="text-xl text-secondary-container/60">Laster koppen ...</p>
+          ) : null}
           {streamError ? (
-            <p className="rounded-xl bg-accent-soft px-4 py-3 text-foreground">{streamError}</p>
+            <div className="rounded-3xl bg-error/20 px-6 py-4">
+              <p className="text-secondary-container">{streamError}</p>
+            </div>
           ) : null}
 
+          {/* Lobby phase */}
           {snapshot && lobbyPhase ? (
             <div className="space-y-6">
-              <p className="text-sm uppercase tracking-wide text-muted">{formatState(state)}</p>
-              <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-                Ro før reveal
+              <h1 className="text-balance text-5xl font-bold tracking-tight text-secondary-container lg:text-6xl xl:text-7xl">
+                Ro for reveal
               </h1>
-              <p className="max-w-prose text-pretty text-lg leading-relaxed text-muted">
+              <p className="max-w-prose text-pretty text-xl leading-relaxed text-secondary-container/70">
                 {state === "team_collecting"
-                  ? "Teamet sender sine gjett · vent til alle er klare før dere åpner reveal."
+                  ? "Teamet sender sine gjett — vent til alle er klare for dere apner reveal."
                   : state === "nh_collecting"
-                    ? "Nyansatt jobber med sine valg · ingen hast på koppen."
-                    : "Økta er i oppstart · alt synkes automatisk fra databasen."}
+                    ? "Nyansatt jobber med sine valg — ingen hast pa koppen."
+                    : "Okta er i oppstart — alt synkes automatisk."}
               </p>
             </div>
           ) : null}
 
+          {/* Ready to reveal */}
           {snapshot && state === "ready_to_reveal" ? (
             <div className="space-y-6">
-              <p className="text-sm uppercase tracking-wide text-muted">{formatState(state)}</p>
-              <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-                Klar til å helle ut flertallet
+              <h1 className="text-balance text-5xl font-bold tracking-tight text-secondary-container lg:text-6xl xl:text-7xl">
+                Klar til a helle ut flertallet
               </h1>
-              <p className="max-w-prose text-pretty text-lg leading-relaxed text-muted">
-                Alt er telt og klargjort. Start reveal når rommet er samlet — én spørsmål om gangen.
+              <p className="max-w-prose text-pretty text-xl leading-relaxed text-secondary-container/70">
+                Alt er telt og klargjort. Start reveal nar rommet er samlet.
               </p>
             </div>
           ) : null}
 
+          {/* Revealing — question sync issue */}
           {snapshot && state === "revealing" && questions.length > 0 && !currentQuestion ? (
-            <p className="text-muted">
-              Vent på synk fra server — spørsmålslisten matcher ikke indeksen ennå.
-            </p>
+            <p className="text-secondary-container/60">Vent pa synk fra server ...</p>
           ) : null}
 
+          {/* Revealing — current question */}
           {snapshot && state === "revealing" && currentQuestion ? (
             <div className="space-y-8">
               <div>
-                <p className="text-sm text-muted">
-                  Spørsmål {idx + 1} av {questions.length}
-                </p>
-                <h1 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="rounded-full bg-secondary-container/20 px-3 py-1 text-sm font-bold text-secondary-container">
+                    {idx + 1} / {questions.length}
+                  </span>
+                  {/* progress dots */}
+                  <div className="flex gap-1.5">
+                    {questions.map((q, i) => (
+                      <div
+                        key={q.id}
+                        className={`h-2 w-2 rounded-full transition-colors ${
+                          i === idx
+                            ? "bg-secondary-container"
+                            : i < idx
+                              ? "bg-secondary-container/40"
+                              : "bg-secondary-container/15"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <h1 className="text-balance text-4xl font-bold tracking-tight text-secondary-container lg:text-5xl xl:text-6xl">
                   {currentQuestion.stem}
                 </h1>
               </div>
 
               {!currentResult ? (
-                <p className="text-muted">
-                  Aggregater mangler — sjekk at reveal-fase er åpnet fra admin.
+                <p className="text-secondary-container/60">
+                  Aggregater mangler — sjekk at reveal-fase er apnet fra admin.
                 </p>
               ) : (
-                <ul className="flex flex-col gap-3">
+                <ul className="flex flex-col gap-4">
                   {[...currentQuestion.options]
                     .sort((a, b) => a.sortOrder - b.sortOrder)
                     .map((opt) => {
@@ -394,33 +450,42 @@ export function PresenterExperience({ publicId }: Props) {
                       return (
                         <li
                           key={opt.id}
-                          className={`relative overflow-hidden rounded-2xl border px-4 py-3 sm:px-5 sm:py-4 ${
-                            isChosen
-                              ? "border-accent bg-accent-soft/80"
-                              : "border-accent-soft bg-accent-soft/25"
+                          className={`relative overflow-hidden rounded-3xl px-6 py-5 ${
+                            isChosen ? "bg-secondary/80" : "bg-secondary-container/15"
                           }`}
                         >
+                          {/* Vote bar */}
                           <div
-                            className="pointer-events-none absolute inset-y-0 left-0 bg-accent/15 motion-safe:transition-[width] motion-safe:duration-700 motion-safe:ease-out"
+                            className={`pointer-events-none absolute inset-y-0 left-0 motion-safe:transition-[width] motion-safe:duration-700 motion-safe:ease-out ${
+                              isChosen ? "bg-secondary-container/20" : "bg-secondary-container/10"
+                            }`}
                             style={{ width: `${share}%` }}
                             aria-hidden
                           />
-                          <div className="relative flex flex-wrap items-center justify-between gap-3">
-                            <span className="text-lg font-medium">{opt.label}</span>
+                          <div className="relative flex flex-wrap items-center justify-between gap-4">
+                            <span
+                              className={`text-xl font-bold ${isChosen ? "text-primary-container" : "text-secondary-container"}`}
+                            >
+                              {opt.label}
+                            </span>
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="font-mono text-muted">{n}</span>
+                              <span
+                                className={`font-mono text-lg ${isChosen ? "text-primary-container/80" : "text-secondary-container/60"}`}
+                              >
+                                {n}
+                              </span>
                               {isTied ? (
-                                <span className="rounded-full bg-background px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+                                <span className="rounded-full bg-secondary-container/20 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-secondary-container">
                                   delt topp
                                 </span>
                               ) : null}
                               {isChosen ? (
-                                <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-background">
+                                <span className="rounded-full bg-secondary-container px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary-container">
                                   teamets stemme
                                 </span>
                               ) : null}
                               {bearerReady && isTruth ? (
-                                <span className="rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-background">
+                                <span className="rounded-full bg-secondary-container px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary-container">
                                   nyansatt
                                 </span>
                               ) : null}
@@ -433,57 +498,57 @@ export function PresenterExperience({ publicId }: Props) {
               )}
 
               {bearerReady && nhOptionForCurrent && currentResult?.chosenOptionId ? (
-                <p className="text-sm leading-relaxed text-muted">
+                <p className="text-lg leading-relaxed text-secondary-container/70">
                   {currentResult.chosenOptionId === nhOptionForCurrent
-                    ? "Treff · koppen får et ordentlig grep denne runden."
-                    : "Utforskende svar — gi nyansatt rom å fortelle litt bak svaret."}
+                    ? "Treff — koppen far et ordentlig grep denne runden."
+                    : "Utforskende svar — gi nyansatt rom a fortelle litt bak svaret."}
                 </p>
               ) : null}
 
               {!bearerReady ? (
-                <p className="text-sm text-muted">
-                  Åpne facilitator-panelet (Ctrl+. ) og lagre admin-token for å se nyansatts valg på
-                  lerretet.
+                <p className="text-sm text-secondary-container/50">
+                  Apne fasilitator-panelet (Ctrl+.) og lagre admin-token for a se nyansatts valg.
                 </p>
               ) : null}
             </div>
           ) : null}
 
+          {/* Completed */}
           {snapshot && state === "completed" ? (
-            <div className="space-y-6">
-              <p className="text-sm uppercase tracking-wide text-muted">Harmoni</p>
-              <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+            <div className="space-y-8">
+              <h1 className="text-balance text-5xl font-bold tracking-tight text-secondary-container lg:text-6xl xl:text-7xl">
                 {harmonyCopy(harmonyStats.matches, harmonyStats.total)}
               </h1>
-              <p className="text-lg text-muted">
-                Dere traff på {harmonyStats.matches} av {harmonyStats.total} flertallsvalg
-                sammenlignet med nyansatt.
+              <p className="text-2xl text-secondary-container/70">
+                Dere traff pa {harmonyStats.matches} av {harmonyStats.total} flertallsvalg.
               </p>
-              <p className="max-w-prose text-pretty text-muted">
-                Takk for at dere tok uken på alvor — samtalene er det som fyller koppen mellom
+              <p className="max-w-prose text-pretty text-lg text-secondary-container/50">
+                Takk for at dere tok uken pa alvor — samtalene er det som fyller koppen mellom
                 svarene.
               </p>
             </div>
           ) : null}
         </main>
 
+        {/* Right: coffee cup */}
         <aside className="flex shrink-0 flex-col items-center justify-center lg:w-[30%]">
           <CoffeeCup fillPercent={cupFill} reducedMotion={reducedMotion} />
-          <p className="mt-4 max-w-[12rem] text-center text-sm text-muted">
-            Koppen speiler hvor ofte teamets flertall traff nyansatt · ikke poeng eller rangering.
+          <p className="mt-6 max-w-[14rem] text-center text-sm text-secondary-container/50">
+            Koppen speiler hvor ofte teamets flertall traff nyansatt — ikke poeng eller rangering.
           </p>
         </aside>
       </div>
 
+      {/* Facilitator dock */}
       {dockOpen ? (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-accent-soft bg-background/95 px-4 py-4 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] backdrop-blur-md sm:px-8">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-secondary-container/20 bg-primary-container/95 px-6 py-5 shadow-[0_-8px_30px_rgba(0,0,0,0.15)] backdrop-blur-xl sm:px-10">
           <div className="mx-auto flex max-w-5xl flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex flex-1 flex-col gap-2">
               <label
                 htmlFor="blend-bearer"
-                className="text-xs font-medium uppercase tracking-wide text-muted"
+                className="text-xs font-bold uppercase tracking-wider text-secondary-container/60"
               >
-                Admin Bearer (kun denne maskinen · Ctrl+. for å skjule)
+                Admin Bearer (Ctrl+. for a skjule)
               </label>
               <div className="flex flex-wrap gap-2">
                 <input
@@ -492,76 +557,70 @@ export function PresenterExperience({ publicId }: Props) {
                   autoComplete="off"
                   value={bearer}
                   onChange={(e) => setBearer(e.target.value)}
-                  className="min-w-[16rem] flex-1 rounded-xl border border-accent-soft bg-background px-3 py-2 text-sm"
-                  placeholder="BLEND_ADMIN_SECRET som Bearer …"
+                  className="min-w-[16rem] flex-1 rounded-2xl border-0 bg-secondary-container/10 px-4 py-2.5 text-sm text-secondary-container outline-none ring-2 ring-transparent focus:ring-secondary/40"
+                  placeholder="BLEND_ADMIN_SECRET som Bearer ..."
                 />
                 <button
                   type="button"
                   onClick={() => saveBearer()}
-                  className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-background"
+                  className="rounded-2xl bg-secondary px-5 py-2.5 text-sm font-bold text-primary-container"
                 >
-                  Lagre token
+                  Lagre
                 </button>
               </div>
               {facilitatorError ? (
-                <p className="text-sm text-accent">{facilitatorError}</p>
+                <p className="text-sm text-error">{facilitatorError}</p>
               ) : (
-                <p className="text-xs text-muted">
-                  Tastatur: ← forrige · mellomrom / → neste (kun i reveal). Neste på siste spørsmål
-                  fullfører økta.
+                <p className="text-xs text-secondary-container/50">
+                  Tastatur: &larr; forrige &middot; mellomrom / &rarr; neste (kun i reveal)
                 </p>
               )}
             </div>
 
             <div className="flex flex-wrap gap-2 lg:justify-end">
-              <button
-                type="button"
-                disabled={!bearerReady}
-                onClick={() => void patchState("ready_to_reveal")}
-                className="rounded-xl bg-accent-soft px-3 py-2 text-sm font-medium disabled:opacity-40"
-              >
-                Sett klar
-              </button>
-              <button
-                type="button"
-                disabled={!bearerReady}
-                onClick={() => void patchState("revealing")}
-                className="rounded-xl bg-accent-soft px-3 py-2 text-sm font-medium disabled:opacity-40"
-              >
-                Start reveal
-              </button>
-              <button
-                type="button"
-                disabled={!bearerReady}
-                onClick={() => void patchState("completed")}
-                className="rounded-xl bg-accent-soft px-3 py-2 text-sm font-medium disabled:opacity-40"
-              >
-                Fullfør
-              </button>
-              <button
-                type="button"
-                disabled={!bearerReady || state !== "revealing"}
-                onClick={() => void handlePrev()}
-                className="rounded-xl border border-accent-soft px-3 py-2 text-sm disabled:opacity-40"
-              >
-                Forrige
-              </button>
-              <button
-                type="button"
-                disabled={!bearerReady || state !== "revealing"}
-                onClick={() => void handleNext()}
-                className="rounded-xl border border-accent px-3 py-2 text-sm font-semibold disabled:opacity-40"
-              >
-                Neste
-              </button>
+              {(
+                [
+                  ["Sett klar", "ready_to_reveal"],
+                  ["Start reveal", "revealing"],
+                  ["Fulfor", "completed"],
+                ] as const
+              ).map(([label, target]) => (
+                <button
+                  key={target}
+                  type="button"
+                  disabled={!bearerReady}
+                  onClick={() => void patchState(target)}
+                  className="rounded-2xl bg-secondary-container/20 px-4 py-2.5 text-sm font-semibold text-secondary-container transition-colors hover:bg-secondary-container/30 disabled:opacity-40"
+                >
+                  {label}
+                </button>
+              ))}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={!bearerReady || state !== "revealing"}
+                  onClick={() => void handlePrev()}
+                  className="rounded-2xl border border-secondary-container/20 px-4 py-2.5 text-sm text-secondary-container disabled:opacity-40"
+                >
+                  &larr;
+                </button>
+                <button
+                  type="button"
+                  disabled={!bearerReady || state !== "revealing"}
+                  onClick={() => void handleNext()}
+                  className="rounded-2xl bg-secondary px-5 py-2.5 text-sm font-bold text-primary-container disabled:opacity-40"
+                >
+                  Neste &rarr;
+                </button>
+              </div>
             </div>
           </div>
         </div>
       ) : null}
 
       {!dockOpen ? (
-        <p className="pointer-events-none fixed bottom-3 left-4 text-[11px] text-muted opacity-70">
-          Ctrl+. facilitator
+        <p className="pointer-events-none fixed bottom-4 left-6 text-xs text-secondary-container/30">
+          Ctrl+. fasilitator
         </p>
       ) : null}
     </div>

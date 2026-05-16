@@ -135,28 +135,34 @@ export function TeamLagFlow({ plainToken }: { plainToken: string }) {
     }
   }, [allPicked, apiUrl, bootstrap, displayName, guesses, reload]);
 
+  /* ---------- Error / loading states ---------- */
+
   if (!token) {
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-6 py-16">
-        <h1 className="text-2xl font-semibold text-foreground">Mangler token</h1>
-        <p className="text-muted">Lenken ser ut til å være ufullstendig.</p>
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-surface-container-low px-6">
+        <div className="max-w-sm rounded-3xl bg-surface-white p-8 text-center shadow-lg">
+          <h1 className="text-2xl font-semibold text-foreground">Mangler token</h1>
+          <p className="mt-3 text-muted">Lenken ser ut til å være ufullstendig.</p>
+        </div>
       </div>
     );
   }
 
   if (busyLoad && !bootstrap) {
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-6 py-16">
-        <p className="text-muted">Åpner lag-lenken …</p>
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-surface-container-low">
+        <p className="text-muted">Apner lag-lenken ...</p>
       </div>
     );
   }
 
   if (loadErr || !bootstrap) {
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-6 py-16">
-        <h1 className="text-2xl font-semibold text-foreground">Lenken virker ikke</h1>
-        <p className="text-muted">{loadErr ?? "Ukjent feil."}</p>
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-surface-container-low px-6">
+        <div className="max-w-sm rounded-3xl bg-surface-white p-8 text-center shadow-lg">
+          <h1 className="text-2xl font-semibold text-foreground">Lenken virker ikke</h1>
+          <p className="mt-3 text-muted">{loadErr ?? "Ukjent feil."}</p>
+        </div>
       </div>
     );
   }
@@ -172,156 +178,192 @@ export function TeamLagFlow({ plainToken }: { plainToken: string }) {
     bootstrap.sessionState === "revealing" ||
     bootstrap.sessionState === "completed";
 
+  const progressPercent =
+    bootstrap.questions.length > 0
+      ? Math.round((answeredCount / bootstrap.questions.length) * 100)
+      : 0;
+
   return (
-    <div className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-10 px-5 py-10 sm:px-8">
-      <header className="space-y-2 border-b border-accent-soft pb-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">Blend-In · lag</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          {submittedBlock ? "Innsendt — takk!" : "Gjett hva ny kollega svarte"}
-        </h1>
-        <p className="text-sm text-muted">
-          Økt <span className="font-mono text-foreground">{bootstrap.sessionPublicId}</span> ·{" "}
-          <span className="text-foreground">{sessionPhaseLabel(bootstrap.sessionState)}</span>
-        </p>
-      </header>
-
-      {draftPhase ? (
-        <section className="rounded-2xl border border-accent-soft bg-accent-soft/35 px-5 py-6">
-          <p className="text-foreground leading-relaxed">
-            Økta er ikke helt i gang ennå. Kom tilbake snart, eller kontakt fasilitator om du mener
-            dette er en feil.
-          </p>
-        </section>
-      ) : null}
-
-      {nhPhase ? (
-        <section className="rounded-2xl border border-accent-soft bg-accent-soft/35 px-5 py-6">
-          <p className="text-foreground leading-relaxed">
-            Ny kollega jobber fortsatt med sine svar. Når de har låst inn svarene, kan du gjette
-            herfra — bare oppdater siden litt senere.
-          </p>
-        </section>
-      ) : null}
-
-      {submittedBlock ? (
-        <section className="rounded-2xl border border-accent-soft bg-accent-soft/40 px-5 py-6">
-          <p className="text-sm leading-relaxed text-foreground">
-            Svaret ditt er registrert fra denne telefonen. Under sees samme live-visning som
-            mobil-følger — samme lenke hele veien.
-          </p>
-        </section>
-      ) : null}
-
-      {!submittedBlock && guessablePhase ? (
-        <>
-          <div className="space-y-2 rounded-xl bg-accent-soft/40 px-4 py-3 text-sm">
-            <label htmlFor="lag-display" className="block font-medium text-muted">
-              Navn (valgfritt)
-            </label>
-            <input
-              id="lag-display"
-              type="text"
-              maxLength={80}
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Hva vil du vises som?"
-              className="w-full rounded-xl border border-accent-soft bg-background px-3 py-2 text-sm"
-            />
+    <div className="flex min-h-dvh flex-col bg-surface-container-low">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col">
+        {/* Header */}
+        <header className="px-6 pb-4 pt-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-secondary">Blend-In</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground">
+            {submittedBlock ? "Innsendt — takk!" : "Gjett hva ny kollega svarte"}
+          </h1>
+          <div className="mt-2 flex items-center gap-2 text-sm text-muted">
+            <span className="font-mono text-foreground">{bootstrap.sessionPublicId}</span>
+            <span className="h-1 w-1 rounded-full bg-outline-variant" />
+            <span>{sessionPhaseLabel(bootstrap.sessionState)}</span>
           </div>
+        </header>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-            <span className="text-muted">
-              Valgt:{" "}
-              <span className="font-semibold text-foreground">
-                {answeredCount} av {bootstrap.questions.length}
-              </span>
-            </span>
-          </div>
+        {/* Waiting states */}
+        {draftPhase || nhPhase ? (
+          <section className="mx-6 rounded-3xl bg-surface-white p-6 shadow-sm">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary-container/50">
+              {/* biome-ignore lint/a11y/noSvgWithoutTitle: decorative icon */}
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="text-secondary"
+                aria-hidden
+              >
+                <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-bold text-foreground">
+              {nhPhase ? "Nyansatt svarer fortsatt..." : "Økta starter snart"}
+            </h2>
+            <p className="mt-2 text-base leading-relaxed text-muted">
+              {nhPhase
+                ? "Pust ut og ta en kaffe — quizen starter snart!"
+                : "Økta er ikke helt i gang ennå. Kom tilbake snart."}
+            </p>
+          </section>
+        ) : null}
 
-          <div className="flex flex-col gap-10">
-            {[...bootstrap.questions]
-              .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map((q, i) => (
-                <article
-                  key={q.id}
-                  className="rounded-2xl border border-accent-soft bg-background/80 p-5 shadow-sm"
-                >
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted">
-                    Spørsmål {i + 1}
-                  </p>
-                  <h2 className="mt-2 text-xl font-semibold leading-snug text-foreground">
-                    {q.stem}
-                  </h2>
-                  <fieldset className="mt-5 space-y-3">
-                    <legend className="text-sm font-medium text-muted">Ditt gjett</legend>
-                    <div className="flex flex-col gap-2">
+        {/* Submitted confirmation */}
+        {submittedBlock ? (
+          <section className="mx-6 rounded-3xl bg-surface-white p-6 shadow-sm">
+            <p className="text-base leading-relaxed text-muted">
+              Svaret ditt er registrert. Under sees live-visningen — samme lenke hele veien.
+            </p>
+          </section>
+        ) : null}
+
+        {/* Guessing form */}
+        {!submittedBlock && guessablePhase ? (
+          <div className="flex flex-1 flex-col px-6 pb-32">
+            {/* Name input */}
+            <div className="mt-4 rounded-3xl bg-surface-white p-5 shadow-sm">
+              <label htmlFor="lag-display" className="block text-sm font-semibold text-muted">
+                Navn (valgfritt)
+              </label>
+              <input
+                id="lag-display"
+                type="text"
+                maxLength={80}
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Hva vil du vises som?"
+                className="mt-2 w-full rounded-2xl border-0 bg-surface-container-low px-4 py-3 text-sm text-foreground outline-none ring-2 ring-transparent focus:ring-secondary/40"
+              />
+            </div>
+
+            {/* Progress */}
+            <div className="mt-6 px-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-semibold text-muted">Fremdrift</span>
+                <span className="font-bold text-secondary">{progressPercent}%</span>
+              </div>
+              <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-surface-container-highest">
+                <div
+                  className="h-full rounded-full bg-secondary transition-all duration-300"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Questions */}
+            <div className="mt-6 flex flex-col gap-6">
+              {[...bootstrap.questions]
+                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .map((q, i) => (
+                  <article key={q.id} className="rounded-3xl bg-surface-white p-6 shadow-sm">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+                      Sporsmal {i + 1}
+                    </p>
+                    <h2 className="mt-2 text-xl font-bold leading-snug text-foreground">
+                      {q.stem}
+                    </h2>
+                    <div className="mt-5 flex flex-col gap-3">
                       {[...q.options]
                         .sort((a, b) => a.sortOrder - b.sortOrder)
                         .map((opt) => {
                           const checked = guesses[q.id] === opt.id;
                           return (
-                            <label
+                            <button
                               key={opt.id}
-                              className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 text-sm transition-colors ${
+                              type="button"
+                              onClick={() => setGuesses((prev) => ({ ...prev, [q.id]: opt.id }))}
+                              className={`flex items-center justify-between rounded-3xl border-2 p-5 text-left transition-all active:scale-[0.98] ${
                                 checked
-                                  ? "border-accent bg-accent-soft/80"
-                                  : "border-accent-soft bg-accent-soft/25 hover:bg-accent-soft/40"
+                                  ? "border-secondary bg-secondary text-surface-white shadow-md"
+                                  : "border-transparent bg-surface-container-low text-foreground hover:border-secondary/30"
                               }`}
                             >
-                              <input
-                                type="radio"
-                                className="mt-1"
-                                name={`lag-opt-${q.id}`}
-                                checked={checked}
-                                onChange={() =>
-                                  setGuesses((prev) => ({
-                                    ...prev,
-                                    [q.id]: opt.id,
-                                  }))
-                                }
-                              />
-                              <span className="leading-snug text-foreground">{opt.label}</span>
-                            </label>
+                              <span className="text-lg font-bold">{opt.label}</span>
+                              {checked ? (
+                                <svg
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  aria-hidden="true"
+                                >
+                                  <circle
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    fill="currentColor"
+                                    opacity="0.2"
+                                  />
+                                  <path
+                                    d="M8 12l3 3 5-5"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              ) : null}
+                            </button>
                           );
                         })}
                     </div>
-                  </fieldset>
-                </article>
-              ))}
+                  </article>
+                ))}
+            </div>
           </div>
+        ) : null}
 
-          <footer className="sticky bottom-0 space-y-3 border-t border-accent-soft bg-background/95 py-6 backdrop-blur-sm">
-            {submitErr ? <p className="text-sm text-accent">{submitErr}</p> : null}
-            <p className="text-xs text-muted">
-              Én innsending per lenke — dobbeltsjekk før du sender. Ingen poeng, bare fellesskap.
+        {/* Live panel */}
+        {showLivePanel && !earlyPhase ? (
+          <section className="mx-6 mt-6 space-y-4 rounded-3xl bg-surface-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-foreground">Følg med</h2>
+            <p className="text-sm text-muted">
+              {submittedBlock
+                ? "Live oppdatert fra økta — du kan bli stående her gjennom reveal."
+                : "Her ser du tempo og aggregater etter hvert som fasilitator åpner reveal."}
             </p>
-            <button
-              type="button"
-              disabled={!allPicked || busySubmit}
-              onClick={() => void submitGuesses()}
-              className="w-full rounded-xl bg-accent px-5 py-4 text-base font-semibold text-background disabled:opacity-40 sm:w-auto"
-            >
-              {busySubmit ? "Sender …" : "Send gjett"}
-            </button>
-          </footer>
-        </>
-      ) : null}
-
-      {showLivePanel && !earlyPhase ? (
-        <section className="space-y-4 border-t border-accent-soft pt-10">
-          <h2 className="text-lg font-semibold text-foreground">Følg med · samme lenke</h2>
-          <p className="text-sm text-muted">
-            {submittedBlock
-              ? "Live oppdatert fra økta — du kan bli stående her gjennom reveal."
-              : "Her ser du tempo og aggregater etter hvert som fasilitator åpner reveal."}{" "}
-            Ekstra visning:{" "}
-            <code className="rounded bg-accent-soft/60 px-1 py-0.5 font-mono text-xs">
-              /mobil/{bootstrap.sessionPublicId}
-            </code>
+            <SessionLiveClient publicId={bootstrap.sessionPublicId} variant="mobil" />
+          </section>
+        ) : null}
+      </div>
+      {/* Sticky submit footer */}
+      !submittedBlock && guessablePhase ? (
+      <footer className="fixed bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-surface-container-low via-surface-container-low to-transparent p-6 pt-12">
+        <div className="mx-auto max-w-md">
+          {submitErr ? <p className="mb-2 text-center text-sm text-error">{submitErr}</p> : null}
+          <p className="mb-3 text-center text-xs text-muted">
+            En innsending per lenke — ingen poeng, bare fellesskap.
           </p>
-          <SessionLiveClient publicId={bootstrap.sessionPublicId} variant="mobil" />
-        </section>
-      ) : null}
+          <button
+            type="button"
+            disabled={!allPicked || busySubmit}
+            onClick={() => void submitGuesses()}
+            className="w-full rounded-3xl bg-secondary py-4 text-lg font-bold text-surface-white shadow-lg shadow-secondary/20 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40"
+          >
+            {busySubmit ? "Sender ..." : "Send gjett"}
+          </button>
+        </div>
+      </footer>
+      ) : null;
     </div>
   );
 }

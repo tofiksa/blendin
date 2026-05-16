@@ -44,11 +44,11 @@ export function NewHireFlow({ publicId, nhToken }: { publicId: string; nhToken: 
   const [busySubmit, setBusySubmit] = useState(false);
   const [draftNote, setDraftNote] = useState<string | null>(null);
   const [draftErr, setDraftErr] = useState<string | null>(null);
+  const [currentIdx, setCurrentIdx] = useState(0);
   const hydratedRef = useRef(false);
   const patchTimerRef = useRef<number | null>(null);
 
   const nhQuery = useMemo(() => encodeURIComponent(token), [token]);
-
   const apiUrl = `/api/sessions/${encodeURIComponent(publicId)}/new-hire?nh=${nhQuery}`;
 
   useEffect(() => {
@@ -98,11 +98,7 @@ export function NewHireFlow({ publicId, nhToken }: { publicId: string; nhToken: 
       .map((q) => {
         const d = draft[q.id];
         if (!d?.optionId || !d.confidenceBand) return null;
-        return {
-          questionId: q.id,
-          optionId: d.optionId,
-          confidenceBand: d.confidenceBand,
-        };
+        return { questionId: q.id, optionId: d.optionId, confidenceBand: d.confidenceBand };
       })
       .filter(Boolean) as Array<{
       questionId: string;
@@ -133,7 +129,6 @@ export function NewHireFlow({ publicId, nhToken }: { publicId: string; nhToken: 
       return d?.optionId && d.confidenceBand;
     }).length;
     if (answersCount === 0) return;
-
     if (patchTimerRef.current) window.clearTimeout(patchTimerRef.current);
     patchTimerRef.current = window.setTimeout(() => {
       void flushDraft();
@@ -162,11 +157,7 @@ export function NewHireFlow({ publicId, nhToken }: { publicId: string; nhToken: 
       const answers = bootstrap.questions.map((q) => {
         const d = draft[q.id];
         if (!d?.optionId || !d.confidenceBand) throw new Error("Mangler svar.");
-        return {
-          questionId: q.id,
-          optionId: d.optionId,
-          confidenceBand: d.confidenceBand,
-        };
+        return { questionId: q.id, optionId: d.optionId, confidenceBand: d.confidenceBand };
       });
       const r = await fetch(apiUrl, {
         method: "POST",
@@ -188,208 +179,286 @@ export function NewHireFlow({ publicId, nhToken }: { publicId: string; nhToken: 
     return q.options.find((o) => o.id === optionId)?.label ?? optionId;
   }, []);
 
+  const sortedQuestions = useMemo(
+    () => (bootstrap ? [...bootstrap.questions].sort((a, b) => a.sortOrder - b.sortOrder) : []),
+    [bootstrap],
+  );
+
+  const currentQuestion = sortedQuestions[currentIdx];
+  const progressPercent = bootstrap
+    ? Math.round(((currentIdx + 1) / bootstrap.questions.length) * 100)
+    : 0;
+
+  const currentDraftComplete =
+    currentQuestion &&
+    draft[currentQuestion.id]?.optionId &&
+    draft[currentQuestion.id]?.confidenceBand;
+
+  /* ---------- Error / loading states ---------- */
+
   if (!token) {
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-6 py-16">
-        <h1 className="text-2xl font-semibold text-foreground">Mangler lenke</h1>
-        <p className="text-muted">
-          Du trenger den personlige Blend-In-lenken du fikk på e-post eller i invitasjonen. Den skal
-          ende med <code className="rounded bg-accent-soft px-1 font-mono text-sm">?nh=…</code>.
-        </p>
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-surface-container-low px-6 py-16">
+        <div className="max-w-sm rounded-3xl bg-surface-white p-8 text-center shadow-lg">
+          <h1 className="text-2xl font-semibold text-foreground">Mangler lenke</h1>
+          <p className="mt-3 text-muted">
+            Du trenger den personlige Blend-In-lenken du fikk. Den skal ende med{" "}
+            <code className="rounded-lg bg-surface-container px-2 py-0.5 font-mono text-sm">
+              ?nh=...
+            </code>
+          </p>
+        </div>
       </div>
     );
   }
 
   if (busyLoad && !bootstrap) {
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-6 py-16">
-        <p className="text-muted">Henter din økt …</p>
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-airy-blue">
+        <p className="text-muted">Henter din økt ...</p>
       </div>
     );
   }
 
   if (loadErr || !bootstrap) {
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-4 px-6 py-16">
-        <h1 className="text-2xl font-semibold text-foreground">Klarte ikke å åpne økta</h1>
-        <p className="text-muted">{loadErr ?? "Ukjent feil."}</p>
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-surface-container-low px-6">
+        <div className="max-w-sm rounded-3xl bg-surface-white p-8 text-center shadow-lg">
+          <h1 className="text-2xl font-semibold text-foreground">Klarte ikke å åpne økta</h1>
+          <p className="mt-3 text-muted">{loadErr ?? "Ukjent feil."}</p>
+        </div>
       </div>
     );
   }
 
   const locked = bootstrap.locked;
 
+  /* ---------- Locked (submitted) state ---------- */
+
+  if (locked) {
+    return (
+      <div className="flex min-h-dvh flex-col bg-surface-container-low">
+        <div className="mx-auto flex max-w-md flex-1 flex-col px-6 py-10">
+          {/* Summary card */}
+          <div className="rounded-3xl bg-surface-white p-8 shadow-lg">
+            <div className="mb-4 h-1 w-full rounded-full bg-secondary" />
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Takk — svarene dine er låst
+            </h1>
+            <p className="mt-3 text-base leading-relaxed text-muted">
+              Du har levert alle svar. Neste steg er at kollegene dine åpner sine magiske lenker og
+              gjør sine gjett — dere møtes på reveal.
+            </p>
+          </div>
+
+          {/* Answers recap */}
+          <div className="mt-8 flex flex-col gap-4">
+            {sortedQuestions.map((q) => {
+              const saved = bootstrap.savedAnswers.find((s) => s.questionId === q.id);
+              return (
+                <div key={q.id} className="rounded-3xl bg-surface-white p-5 shadow-sm">
+                  <p className="font-semibold text-foreground">{q.stem}</p>
+                  <p className="mt-2 text-sm text-muted">
+                    Valg:{" "}
+                    <span className="font-medium text-foreground">
+                      {saved ? optionLabel(q, saved.optionId) : "—"}
+                    </span>
+                  </p>
+                  <p className="text-sm text-muted">
+                    Trygghet:{" "}
+                    <span className="font-medium text-foreground">
+                      {saved ? bandSummary(saved.confidenceBand) : "—"}
+                    </span>
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ---------- Active quiz flow ---------- */
+
   return (
-    <div className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-8 px-5 py-10 sm:px-8">
-      <header className="space-y-2 border-b border-accent-soft pb-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">
-          Blend-In · ny kollega
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          {locked ? "Takk — svarene dine er låst" : "Dine valg · uke én"}
-        </h1>
-        <p className="text-sm text-muted">
-          Økt <span className="font-mono text-foreground">{bootstrap.publicId}</span> ·{" "}
-          {locked ? "Teamet kan nå gjette." : "Ta deg god tid — ingen poengtavle."}
-        </p>
+    <div className="flex min-h-dvh flex-col bg-airy-blue">
+      {/* Progress bar */}
+      <div className="fixed top-0 left-0 z-20 h-1 w-full bg-surface-container-highest">
+        <div
+          className="h-full rounded-r-full bg-secondary transition-all duration-300"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
+
+      {/* Header */}
+      <header className="flex items-center justify-between p-4 pt-6">
+        <button
+          type="button"
+          onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
+          disabled={currentIdx === 0}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-white/50 text-foreground transition-colors hover:bg-surface-white/80 disabled:opacity-30"
+          aria-label="Forrige"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path
+              d="M13 4l-6 6 6 6"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+        <span className="text-sm font-semibold uppercase tracking-wider text-muted">
+          Trinn {currentIdx + 1} av {sortedQuestions.length}
+        </span>
+        <div className="w-12" />
       </header>
 
-      {locked ? (
-        <section className="space-y-6 rounded-2xl border border-accent-soft bg-accent-soft/35 p-6">
-          <p className="text-sm leading-relaxed text-foreground">
-            Du har levert alle svar. Neste steg er at kollegene dine åpner sine magiske lenker og
-            gjør sine gjett — dere møtes på reveal.
-          </p>
-          <ul className="flex flex-col gap-5">
-            {[...bootstrap.questions]
-              .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map((q) => {
-                const saved = bootstrap.savedAnswers.find((s) => s.questionId === q.id);
-                return (
-                  <li key={q.id} className="rounded-xl bg-background/70 px-4 py-3">
-                    <p className="font-medium text-foreground">{q.stem}</p>
-                    <p className="mt-2 text-sm text-muted">
-                      Valg:{" "}
-                      <span className="text-foreground">
-                        {saved ? optionLabel(q, saved.optionId) : "—"}
-                      </span>
-                    </p>
-                    <p className="text-sm text-muted">
-                      Trygghet:{" "}
-                      <span className="text-foreground">
-                        {saved ? bandSummary(saved.confidenceBand) : "—"}
-                      </span>
-                    </p>
-                  </li>
-                );
-              })}
-          </ul>
-        </section>
-      ) : (
-        <>
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-accent-soft/40 px-4 py-3 text-sm">
-            <span className="text-muted">
-              Fremdrift:{" "}
-              <span className="font-semibold text-foreground">
-                {answeredCount} av {bootstrap.questions.length}
-              </span>
-            </span>
-            {draftNote ? <span className="text-muted">{draftNote}</span> : null}
+      {/* Draft status */}
+      {draftNote ? <div className="px-6 text-center text-xs text-muted">{draftNote}</div> : null}
+      {draftErr ? <div className="px-6 text-center text-xs text-error">{draftErr}</div> : null}
+
+      {/* Question card */}
+      {currentQuestion ? (
+        <main className="flex flex-1 flex-col items-center justify-center px-4 pb-32">
+          <div className="w-full max-w-md rounded-[24px] bg-surface-container-high/60 p-6 shadow-[0_12px_40px_-8px_rgba(15,23,42,0.12)] sm:p-8">
+            {/* Question stem */}
+            <h2 className="text-center text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl">
+              {currentQuestion.stem}
+            </h2>
+
+            {/* Options as large tappable cards */}
+            <div className="mt-8 grid grid-cols-1 gap-3">
+              {[...currentQuestion.options]
+                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .map((opt) => {
+                  const checked = draft[currentQuestion.id]?.optionId === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          [currentQuestion.id]: {
+                            optionId: opt.id,
+                            confidenceBand: prev[currentQuestion.id]?.confidenceBand ?? null,
+                          },
+                        }))
+                      }
+                      className={`flex items-center justify-between rounded-3xl border-2 p-5 text-left transition-all active:scale-[0.98] ${
+                        checked
+                          ? "border-secondary bg-secondary text-surface-white shadow-md"
+                          : "border-transparent bg-surface-white text-foreground shadow-sm hover:border-secondary/40"
+                      }`}
+                    >
+                      <span className="text-lg font-bold">{opt.label}</span>
+                      {checked ? (
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          aria-hidden="true"
+                        >
+                          <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.2" />
+                          <path
+                            d="M8 12l3 3 5-5"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          className="text-outline-variant"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M9 18l6-6-6-6"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  );
+                })}
+            </div>
+
+            {/* Confidence band */}
+            <div className="mt-8 border-t border-outline-variant/30 pt-6">
+              <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted">
+                Hvor trygg er du?
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {NEW_HIRE_CONFIDENCE_BANDS.map((b) => {
+                  const picked = draft[currentQuestion.id]?.confidenceBand === b.value;
+                  return (
+                    <button
+                      key={b.value}
+                      type="button"
+                      onClick={() =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          [currentQuestion.id]: {
+                            optionId: prev[currentQuestion.id]?.optionId ?? null,
+                            confidenceBand: b.value,
+                          },
+                        }))
+                      }
+                      className={`flex flex-col rounded-2xl border-2 px-3 py-3 text-left transition-all ${
+                        picked
+                          ? "border-secondary bg-secondary-container/50"
+                          : "border-transparent bg-surface-white hover:border-secondary/30"
+                      }`}
+                    >
+                      <span className="text-sm font-semibold text-foreground">{b.title}</span>
+                      <span className="text-xs text-muted">{b.hint}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-          {draftErr ? <p className="text-sm text-accent">{draftErr}</p> : null}
+        </main>
+      ) : null}
 
-          <div className="flex flex-col gap-10">
-            {[...bootstrap.questions]
-              .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map((q, i) => (
-                <article
-                  key={q.id}
-                  className="rounded-2xl border border-accent-soft bg-background/80 p-5 shadow-sm"
-                >
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted">
-                    Spørsmål {i + 1}
-                  </p>
-                  <h2 className="mt-2 text-xl font-semibold leading-snug text-foreground">
-                    {q.stem}
-                  </h2>
+      {/* Sticky footer CTA */}
+      <footer className="fixed bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-airy-blue via-airy-blue to-transparent p-6 pt-12">
+        <div className="mx-auto max-w-md">
+          {submitErr ? <p className="mb-2 text-center text-sm text-error">{submitErr}</p> : null}
 
-                  <fieldset className="mt-5 space-y-3">
-                    <legend className="text-sm font-medium text-muted">Svar</legend>
-                    <div className="flex flex-col gap-2">
-                      {[...q.options]
-                        .sort((a, b) => a.sortOrder - b.sortOrder)
-                        .map((opt) => {
-                          const checked = draft[q.id]?.optionId === opt.id;
-                          return (
-                            <label
-                              key={opt.id}
-                              className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 text-sm transition-colors ${
-                                checked
-                                  ? "border-accent bg-accent-soft/80"
-                                  : "border-accent-soft bg-accent-soft/25 hover:bg-accent-soft/40"
-                              }`}
-                            >
-                              <input
-                                type="radio"
-                                className="mt-1"
-                                name={`nh-opt-${q.id}`}
-                                checked={checked}
-                                onChange={() =>
-                                  setDraft((prev) => ({
-                                    ...prev,
-                                    [q.id]: {
-                                      optionId: opt.id,
-                                      confidenceBand: prev[q.id]?.confidenceBand ?? null,
-                                    },
-                                  }))
-                                }
-                              />
-                              <span className="leading-snug text-foreground">{opt.label}</span>
-                            </label>
-                          );
-                        })}
-                    </div>
-                  </fieldset>
-
-                  <fieldset className="mt-6 space-y-3">
-                    <legend className="text-sm font-medium text-muted">
-                      Hvor trygg er du på dette svaret?
-                    </legend>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {NEW_HIRE_CONFIDENCE_BANDS.map((b) => {
-                        const picked = draft[q.id]?.confidenceBand === b.value;
-                        return (
-                          <label
-                            key={b.value}
-                            className={`flex cursor-pointer flex-col rounded-xl border px-3 py-2 text-sm ${
-                              picked
-                                ? "border-accent bg-accent-soft/90"
-                                : "border-accent-soft bg-accent-soft/30 hover:bg-accent-soft/50"
-                            }`}
-                          >
-                            <span className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name={`nh-band-${q.id}`}
-                                checked={picked}
-                                onChange={() =>
-                                  setDraft((prev) => ({
-                                    ...prev,
-                                    [q.id]: {
-                                      optionId: prev[q.id]?.optionId ?? null,
-                                      confidenceBand: b.value,
-                                    },
-                                  }))
-                                }
-                              />
-                              <span className="font-medium text-foreground">{b.title}</span>
-                            </span>
-                            <span className="pl-6 text-xs text-muted">{b.hint}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </fieldset>
-                </article>
-              ))}
-          </div>
-
-          <footer className="sticky bottom-0 space-y-4 border-t border-accent-soft bg-background/95 py-6 backdrop-blur-sm">
-            {submitErr ? <p className="text-sm text-accent">{submitErr}</p> : null}
-            <p className="text-xs text-muted">
-              Når du sender, kan du ikke endre svarene. Kladd lagres automatisk underveis.
-            </p>
+          {currentIdx < sortedQuestions.length - 1 ? (
+            <button
+              type="button"
+              disabled={!currentDraftComplete}
+              onClick={() => setCurrentIdx((i) => i + 1)}
+              className="w-full rounded-3xl bg-secondary py-4 text-lg font-bold text-surface-white shadow-lg shadow-secondary/20 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40"
+            >
+              Neste trinn
+            </button>
+          ) : (
             <button
               type="button"
               disabled={!allAnswered || busySubmit}
               onClick={() => void submitFinal()}
-              className="w-full rounded-xl bg-accent px-5 py-4 text-base font-semibold text-background disabled:opacity-40 sm:w-auto"
+              className="w-full rounded-3xl bg-secondary py-4 text-lg font-bold text-surface-white shadow-lg shadow-secondary/20 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40"
             >
-              {busySubmit ? "Sender …" : "Lås og send til teamet"}
+              {busySubmit ? "Sender ..." : "Las og send til teamet"}
             </button>
-          </footer>
-        </>
-      )}
+          )}
+        </div>
+      </footer>
     </div>
   );
 }

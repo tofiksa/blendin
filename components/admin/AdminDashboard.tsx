@@ -232,7 +232,7 @@ export function AdminDashboard() {
     }
     const slug = tenantSlug.trim();
     if (!slug) {
-      setFormErr("Tenant-slug kan ikke være tom.");
+      setFormErr("Tenant-slug kan ikke vaere tom.");
       return;
     }
     setBusy(true);
@@ -263,7 +263,7 @@ export function AdminDashboard() {
       setCreated(payload as CreatedSessionResponse);
     } catch (e) {
       setCreated(null);
-      setFormErr(e instanceof Error ? e.message : "Kunne ikke opprette økt.");
+      setFormErr(e instanceof Error ? e.message : "Kunne ikke opprette okt.");
     } finally {
       setBusy(false);
     }
@@ -275,355 +275,371 @@ export function AdminDashboard() {
   }, []);
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-3xl flex-col gap-10 px-5 py-10 sm:px-8">
-      <header className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted">Blend-In</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Admin</h1>
-        <p className="max-w-prose text-muted">
-          Opprett quiz-økter med magiske lenker og QR-koder. Krever{" "}
-          <code className="rounded bg-accent-soft px-1 py-0.5 font-mono text-sm">
-            BLEND_ADMIN_SECRET
-          </code>{" "}
-          som Bearer — lagres kun i denne nettleseren.
-        </p>
-      </header>
-
-      <section className="space-y-4 rounded-2xl border border-accent-soft bg-accent-soft/25 p-6">
-        <h2 className="text-lg font-semibold text-foreground">Innlogging</h2>
-        <label htmlFor="admin-bearer" className="block text-sm font-medium text-muted">
-          Admin Bearer
-        </label>
-        <div className="flex flex-wrap gap-2">
-          <input
-            id="admin-bearer"
-            type="password"
-            autoComplete="off"
-            value={bearer}
-            onChange={(e) => setBearer(e.target.value)}
-            className="min-w-[16rem] flex-1 rounded-xl border border-accent-soft bg-background px-3 py-2 text-sm"
-            placeholder="Lim inn hemmelighet …"
-          />
-          <button
-            type="button"
-            onClick={() => saveBearer()}
-            className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-background"
-          >
-            Lagre token
-          </button>
-        </div>
-        {bearerSaved ? <p className="text-xs text-muted">Token lagret for denne økten.</p> : null}
-      </section>
-
-      <TenantQuizBootstrap bearer={bearer} onPackCreated={onQuizPackCreated} />
-
-      <ExistingTenantQuizPack
-        bearer={bearer}
-        tenantSlug={tenantSlug}
-        onTenantSlugChange={setTenantSlug}
-        onQuizTemplateCreated={(name) => setQuizTemplateName(name)}
-      />
-
-      <section className="space-y-4 rounded-2xl border border-accent-soft bg-background/80 p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-foreground">Tenant</h2>
-        <div className="space-y-2">
-          <label htmlFor="tenant-slug" className="block text-sm font-medium text-muted">
-            Slug
-          </label>
-          <input
-            id="tenant-slug"
-            value={tenantSlug}
-            onChange={(e) => setTenantSlug(e.target.value)}
-            className="w-full max-w-md rounded-xl border border-accent-soft bg-background px-3 py-2 font-mono text-sm"
-          />
-        </div>
-        {tenantErr ? <p className="text-sm text-accent">{tenantErr}</p> : null}
-        {tenantPreview ? (
-          <div className="flex flex-wrap items-center gap-4 rounded-xl bg-accent-soft/40 px-4 py-3">
-            <div>
-              <p className="text-sm font-semibold text-foreground">{tenantPreview.name}</p>
-              <p className="text-xs text-muted">/{tenantPreview.slug}</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                ["Primær", tenantPreview.primaryColor],
-                ["Accent", tenantPreview.accentColor],
-                ["Overflate", tenantPreview.surfaceColor],
-              ].map(([label, hex]) =>
-                hex ? (
-                  <div key={label} className="flex items-center gap-2 text-xs text-muted">
-                    <span
-                      className="h-8 w-8 rounded-full border border-accent-soft shadow-inner"
-                      style={{ backgroundColor: hex }}
-                      title={hex}
-                    />
-                    {label}
-                  </div>
-                ) : null,
-              )}
-            </div>
-            <p className="w-full text-xs text-muted">
-              Redigering av branding kommer senere — foreløpig styres dette i databasen / seed.
-            </p>
-          </div>
-        ) : null}
-      </section>
-
-      <section className="space-y-4 rounded-2xl border border-accent-soft bg-background/80 p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-foreground">Ny økt</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <label htmlFor="session-mode" className="block text-sm font-medium text-muted">
-              Modus
-            </label>
-            <select
-              id="session-mode"
-              value={mode}
-              onChange={(e) => setMode(e.target.value as "async" | "live")}
-              className="w-full rounded-xl border border-accent-soft bg-background px-3 py-2 text-sm"
-            >
-              <option value="async">Asynkron</option>
-              <option value="live">Live</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="team-count" className="block text-sm font-medium text-muted">
-              Antall team-lenker
-            </label>
-            <input
-              id="team-count"
-              type="number"
-              min={1}
-              max={100}
-              value={teamLinkCount}
-              onChange={(e) => setTeamLinkCount(Number.parseInt(e.target.value, 10) || 1)}
-              className="w-full rounded-xl border border-accent-soft bg-background px-3 py-2 text-sm"
-            />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="quiz-template" className="block text-sm font-medium text-muted">
-            Quiz-mal (valgfritt)
-          </label>
-          <input
-            id="quiz-template"
-            list="admin-quiz-template-options"
-            value={quizTemplateName}
-            onChange={(e) => setQuizTemplateName(e.target.value)}
-            placeholder={demoQuizTemplateName}
-            autoComplete="off"
-            className="w-full rounded-xl border border-accent-soft bg-background px-3 py-2 text-sm"
-          />
-          <datalist id="admin-quiz-template-options">
-            {quizTemplateList.map((t) => (
-              <option key={t.id} value={t.name} />
-            ))}
-          </datalist>
-          <p className="text-xs text-muted">
-            Tom felt bruker standard demo-mal (
-            <span className="font-mono">{demoQuizTemplateName}</span>) når den finnes for tenanten.
-            Skriv eller velg fra forslag — navnet må stemme nøyaktig.
+    <div className="min-h-dvh bg-surface-container-low">
+      <div className="mx-auto max-w-3xl px-6 py-10 sm:px-8">
+        {/* Header */}
+        <header className="mb-10">
+          <p className="text-xs font-bold uppercase tracking-wider text-secondary">Blend-In</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Admin
+          </h1>
+          <p className="mt-3 max-w-prose text-muted">
+            Opprett quiz-okter med magiske lenker og QR-koder. Krever{" "}
+            <code className="rounded-lg bg-surface-container-highest px-1.5 py-0.5 font-mono text-sm">
+              BLEND_ADMIN_SECRET
+            </code>{" "}
+            som Bearer.
           </p>
-          {bearer.trim() && tenantSlug.trim() && quizTemplatesLoadErr ? (
-            <p className="text-xs text-accent">{quizTemplatesLoadErr}</p>
-          ) : null}
-          {bearer.trim() &&
-          tenantSlug.trim() &&
-          !quizTemplatesLoadErr &&
-          quizTemplateList.length > 0 ? (
-            <p className="text-xs text-muted">
-              {quizTemplateList.length} mal(er) for denne tenanten.
-            </p>
-          ) : null}
-        </div>
+        </header>
 
-        <AdminQuizQuestionPreview
-          key={`${tenantSlug.trim().toLowerCase()}:${quizTemplateName.trim()}`}
-          bearer={bearer}
-          tenantSlug={tenantSlug}
-          quizTemplateName={quizTemplateName}
-        />
-
-        {formErr ? <p className="text-sm text-accent">{formErr}</p> : null}
-        <button
-          type="button"
-          disabled={busy || !bearer.trim()}
-          onClick={() => void createSession()}
-          className="rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-background disabled:opacity-40"
-        >
-          {busy ? "Oppretter …" : "Opprett økt"}
-        </button>
-        {!bearer.trim() ? (
-          <p className="text-xs text-muted">Du må lime inn admin-token over for å opprette økt.</p>
-        ) : null}
-      </section>
-
-      {created && displayUrls ? (
-        <section className="space-y-6 rounded-2xl border border-accent-soft bg-accent-soft/20 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-foreground">Lenker & QR</h2>
-            <p className="font-mono text-sm text-muted">{created.publicId}</p>
-          </div>
-          {copiedHint ? <p className="text-sm text-muted">Kopierte: {copiedHint}</p> : null}
-
-          <div className="flex flex-col gap-8">
-            <div className="space-y-4">
-              <UrlQrBlock
-                title="Nyansatt-skjerm"
-                description="Quiz for ny kollega · åpnes i vanlig nettleser (samme lenke som QR)."
-                url={displayUrls.newHire}
-                qrSrc={qrMap.nh}
-                onCopy={() => {
-                  void copyText(displayUrls.newHire);
-                  flashCopied("Nyansatt-URL");
-                }}
+        <div className="flex flex-col gap-8">
+          {/* Auth section */}
+          <section className="rounded-3xl bg-surface-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-foreground">Innlogging</h2>
+            <label htmlFor="admin-bearer" className="mt-4 block text-sm font-semibold text-muted">
+              Admin Bearer
+            </label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <input
+                id="admin-bearer"
+                type="password"
+                autoComplete="off"
+                value={bearer}
+                onChange={(e) => setBearer(e.target.value)}
+                className="min-w-[16rem] flex-1 rounded-2xl border-0 bg-surface-container-low px-4 py-3 text-sm text-foreground outline-none ring-2 ring-transparent focus:ring-secondary/40"
+                placeholder="Lim inn hemmelighet ..."
               />
-              <div className="rounded-xl border border-accent-soft bg-accent-soft/35 px-4 py-3 text-xs">
-                <p className="font-medium text-foreground">JSON-API (integrasjon / debugging)</p>
-                <code className="mt-2 block break-all rounded-lg bg-background/80 px-2 py-2 font-mono">
-                  {displayUrls.newHireApi}
-                </code>
-                <button
-                  type="button"
-                  className="mt-2 text-accent underline"
-                  onClick={() => {
-                    void copyText(displayUrls.newHireApi);
-                    flashCopied("Nyansatt API");
-                  }}
+              <button
+                type="button"
+                onClick={() => saveBearer()}
+                className="rounded-2xl bg-secondary px-5 py-3 text-sm font-bold text-surface-white"
+              >
+                Lagre token
+              </button>
+            </div>
+            {bearerSaved ? (
+              <p className="mt-2 text-xs text-muted">Token lagret for denne okten.</p>
+            ) : null}
+          </section>
+
+          <TenantQuizBootstrap bearer={bearer} onPackCreated={onQuizPackCreated} />
+
+          <ExistingTenantQuizPack
+            bearer={bearer}
+            tenantSlug={tenantSlug}
+            onTenantSlugChange={setTenantSlug}
+            onQuizTemplateCreated={(name) => setQuizTemplateName(name)}
+          />
+
+          {/* Tenant section */}
+          <section className="rounded-3xl bg-surface-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-foreground">Tenant</h2>
+            <div className="mt-4 space-y-2">
+              <label htmlFor="tenant-slug" className="block text-sm font-semibold text-muted">
+                Slug
+              </label>
+              <input
+                id="tenant-slug"
+                value={tenantSlug}
+                onChange={(e) => setTenantSlug(e.target.value)}
+                className="w-full max-w-md rounded-2xl border-0 bg-surface-container-low px-4 py-3 font-mono text-sm text-foreground outline-none ring-2 ring-transparent focus:ring-secondary/40"
+              />
+            </div>
+            {tenantErr ? <p className="mt-3 text-sm text-error">{tenantErr}</p> : null}
+            {tenantPreview ? (
+              <div className="mt-4 flex flex-wrap items-center gap-4 rounded-2xl bg-surface-container-low px-5 py-4">
+                <div>
+                  <p className="text-sm font-bold text-foreground">{tenantPreview.name}</p>
+                  <p className="text-xs text-muted">/{tenantPreview.slug}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    ["Primaer", tenantPreview.primaryColor],
+                    ["Accent", tenantPreview.accentColor],
+                    ["Overflate", tenantPreview.surfaceColor],
+                  ].map(([label, hex]) =>
+                    hex ? (
+                      <div key={label} className="flex items-center gap-2 text-xs text-muted">
+                        <span
+                          className="h-8 w-8 rounded-full border border-outline-variant shadow-inner"
+                          style={{ backgroundColor: hex }}
+                          title={hex}
+                        />
+                        {label}
+                      </div>
+                    ) : null,
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </section>
+
+          {/* New session */}
+          <section className="rounded-3xl bg-surface-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-foreground">Ny okt</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="session-mode" className="block text-sm font-semibold text-muted">
+                  Modus
+                </label>
+                <select
+                  id="session-mode"
+                  value={mode}
+                  onChange={(e) => setMode(e.target.value as "async" | "live")}
+                  className="w-full rounded-2xl border-0 bg-surface-container-low px-4 py-3 text-sm text-foreground outline-none"
                 >
-                  Kopier API-URL
-                </button>
+                  <option value="async">Asynkron</option>
+                  <option value="live">Live</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="team-count" className="block text-sm font-semibold text-muted">
+                  Antall team-lenker
+                </label>
+                <input
+                  id="team-count"
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={teamLinkCount}
+                  onChange={(e) => setTeamLinkCount(Number.parseInt(e.target.value, 10) || 1)}
+                  className="w-full rounded-2xl border-0 bg-surface-container-low px-4 py-3 text-sm text-foreground outline-none"
+                />
               </div>
             </div>
-
-            <div className="grid gap-8 lg:grid-cols-2">
-              <UrlQrBlock
-                title="Presenter"
-                description="Fullskjerm reveal og facilitator."
-                url={displayUrls.presenter}
-                qrSrc={qrMap.presenter}
-                onCopy={() => {
-                  void copyText(displayUrls.presenter);
-                  flashCopied("Presenter-URL");
-                }}
+            <div className="mt-4 space-y-2">
+              <label htmlFor="quiz-template" className="block text-sm font-semibold text-muted">
+                Quiz-mal (valgfritt)
+              </label>
+              <input
+                id="quiz-template"
+                list="admin-quiz-template-options"
+                value={quizTemplateName}
+                onChange={(e) => setQuizTemplateName(e.target.value)}
+                placeholder={demoQuizTemplateName}
+                autoComplete="off"
+                className="w-full rounded-2xl border-0 bg-surface-container-low px-4 py-3 text-sm text-foreground outline-none"
               />
-              <UrlQrBlock
-                title="Mobil-følger"
-                description="Enkel live-visning for telefoner."
-                url={displayUrls.mobil}
-                qrSrc={qrMap.mobil}
-                onCopy={() => {
-                  void copyText(displayUrls.mobil);
-                  flashCopied("Mobil-URL");
-                }}
-              />
+              <datalist id="admin-quiz-template-options">
+                {quizTemplateList.map((t) => (
+                  <option key={t.id} value={t.name} />
+                ))}
+              </datalist>
+              <p className="text-xs text-muted">
+                Tom felt bruker standard demo-mal (
+                <span className="font-mono">{demoQuizTemplateName}</span>).
+              </p>
+              {bearer.trim() && tenantSlug.trim() && quizTemplatesLoadErr ? (
+                <p className="text-xs text-error">{quizTemplatesLoadErr}</p>
+              ) : null}
+              {bearer.trim() &&
+              tenantSlug.trim() &&
+              !quizTemplatesLoadErr &&
+              quizTemplateList.length > 0 ? (
+                <p className="text-xs text-muted">
+                  {quizTemplateList.length} mal(er) for denne tenanten.
+                </p>
+              ) : null}
             </div>
-          </div>
 
-          <div className="space-y-3 rounded-xl bg-background/70 px-4 py-4">
-            <p className="text-sm font-medium text-foreground">
-              Team-lenker ({displayUrls.teamJoin.length})
-            </p>
-            <p className="text-xs text-muted">
-              Hvert spor åpner quiz-skjerm for ett gjett · QR viser samme URL som du deler i chat.
-            </p>
-            <ul className="flex flex-col gap-6">
-              {displayUrls.teamJoin.map((url, i) => (
-                <li
-                  key={created.teamJoinPlainTokens[i]}
-                  className="flex flex-col gap-3 sm:flex-row sm:items-start"
-                >
-                  <div className="flex-1 space-y-2">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted">
-                      Lenke {i + 1}
-                    </p>
-                    <code className="block break-all rounded-lg bg-accent-soft/50 px-3 py-2 font-mono text-xs">
-                      {url}
+            <AdminQuizQuestionPreview
+              key={`${tenantSlug.trim().toLowerCase()}:${quizTemplateName.trim()}`}
+              bearer={bearer}
+              tenantSlug={tenantSlug}
+              quizTemplateName={quizTemplateName}
+            />
+
+            {formErr ? <p className="mt-4 text-sm text-error">{formErr}</p> : null}
+            <button
+              type="button"
+              disabled={busy || !bearer.trim()}
+              onClick={() => void createSession()}
+              className="mt-6 rounded-2xl bg-secondary px-6 py-3.5 text-sm font-bold text-surface-white shadow-md shadow-secondary/20 transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40"
+            >
+              {busy ? "Oppretter ..." : "Opprett okt"}
+            </button>
+            {!bearer.trim() ? (
+              <p className="mt-2 text-xs text-muted">
+                Du ma lime inn admin-token over for a opprette okt.
+              </p>
+            ) : null}
+          </section>
+
+          {/* Created session links */}
+          {created && displayUrls ? (
+            <section className="rounded-3xl bg-secondary-container/20 p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-lg font-bold text-foreground">Lenker & QR</h2>
+                <span className="rounded-full bg-surface-container-highest px-3 py-1 font-mono text-xs text-muted">
+                  {created.publicId}
+                </span>
+              </div>
+              {copiedHint ? (
+                <p className="mt-2 text-sm text-secondary">Kopierte: {copiedHint}</p>
+              ) : null}
+
+              <div className="mt-6 flex flex-col gap-8">
+                <div className="space-y-4">
+                  <UrlQrBlock
+                    title="Nyansatt-skjerm"
+                    description="Quiz for ny kollega."
+                    url={displayUrls.newHire}
+                    qrSrc={qrMap.nh}
+                    onCopy={() => {
+                      void copyText(displayUrls.newHire);
+                      flashCopied("Nyansatt-URL");
+                    }}
+                  />
+                  <div className="rounded-2xl bg-surface-container-low px-5 py-4 text-xs">
+                    <p className="font-bold text-foreground">JSON-API</p>
+                    <code className="mt-2 block break-all rounded-xl bg-surface-container-highest/50 px-3 py-2 font-mono">
+                      {displayUrls.newHireApi}
                     </code>
                     <button
                       type="button"
+                      className="mt-2 text-secondary underline"
                       onClick={() => {
-                        void copyText(url);
-                        flashCopied(`Team ${i + 1}`);
+                        void copyText(displayUrls.newHireApi);
+                        flashCopied("Nyansatt API");
                       }}
-                      className="text-xs font-semibold text-accent underline-offset-2 hover:underline"
                     >
-                      Kopier lag-URL
+                      Kopier API-URL
                     </button>
-                    <div className="rounded-lg border border-accent-soft/80 bg-background/60 px-2 py-2">
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-muted">
-                        JSON-API
-                      </p>
-                      <code className="mt-1 block break-all font-mono text-[11px] text-muted">
-                        {displayUrls.teamJoinApi[i]}
-                      </code>
+                  </div>
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <UrlQrBlock
+                    title="Presenter"
+                    description="Fullskjerm reveal og fasilitator."
+                    url={displayUrls.presenter}
+                    qrSrc={qrMap.presenter}
+                    onCopy={() => {
+                      void copyText(displayUrls.presenter);
+                      flashCopied("Presenter-URL");
+                    }}
+                  />
+                  <UrlQrBlock
+                    title="Mobil-folger"
+                    description="Enkel live-visning for telefoner."
+                    url={displayUrls.mobil}
+                    qrSrc={qrMap.mobil}
+                    onCopy={() => {
+                      void copyText(displayUrls.mobil);
+                      flashCopied("Mobil-URL");
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Team links */}
+              <div className="mt-8 rounded-2xl bg-surface-white p-5">
+                <p className="text-sm font-bold text-foreground">
+                  Team-lenker ({displayUrls.teamJoin.length})
+                </p>
+                <p className="mt-1 text-xs text-muted">
+                  Hvert spor apner quiz-skjerm for ett gjett.
+                </p>
+                <ul className="mt-4 flex flex-col gap-6">
+                  {displayUrls.teamJoin.map((url, i) => (
+                    <li
+                      key={created.teamJoinPlainTokens[i]}
+                      className="flex flex-col gap-3 sm:flex-row sm:items-start"
+                    >
+                      <div className="flex-1 space-y-2">
+                        <p className="text-xs font-bold uppercase tracking-wider text-muted">
+                          Lenke {i + 1}
+                        </p>
+                        <code className="block break-all rounded-xl bg-surface-container-low px-3 py-2 font-mono text-xs">
+                          {url}
+                        </code>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void copyText(url);
+                            flashCopied(`Team ${i + 1}`);
+                          }}
+                          className="text-xs font-bold text-secondary underline-offset-2 hover:underline"
+                        >
+                          Kopier lag-URL
+                        </button>
+                        <div className="rounded-xl border border-outline-variant/30 bg-surface-container-low px-3 py-2">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
+                            JSON-API
+                          </p>
+                          <code className="mt-1 block break-all font-mono text-[11px] text-muted">
+                            {displayUrls.teamJoinApi[i]}
+                          </code>
+                          <button
+                            type="button"
+                            className="mt-1 text-[11px] text-secondary underline"
+                            onClick={() => {
+                              void copyText(displayUrls.teamJoinApi[i] ?? "");
+                              flashCopied(`Team API ${i + 1}`);
+                            }}
+                          >
+                            Kopier API-URL
+                          </button>
+                        </div>
+                      </div>
+                      {qrMap[`team_${i}`] ? (
+                        <Image
+                          src={qrMap[`team_${i}`]}
+                          alt=""
+                          width={140}
+                          height={140}
+                          unoptimized
+                          className="rounded-2xl border border-outline-variant/20 bg-surface-white p-1"
+                        />
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Secret tokens */}
+              <details className="mt-6 rounded-2xl bg-surface-container-low px-5 py-4">
+                <summary className="cursor-pointer text-sm font-bold text-foreground">
+                  Tekniske token (hemmelige)
+                </summary>
+                <p className="mt-2 text-xs text-muted">
+                  Vis kun for fasilitator — ikke del pa skjerm.
+                </p>
+                <div className="mt-3 space-y-2 font-mono text-xs">
+                  <p>
+                    <span className="text-muted">nh:</span> {created.newHirePlainToken}
+                    <button
+                      type="button"
+                      className="ml-2 text-secondary underline"
+                      onClick={() => {
+                        void copyText(created.newHirePlainToken);
+                        flashCopied("nh-token");
+                      }}
+                    >
+                      kopier
+                    </button>
+                  </p>
+                  {created.teamJoinPlainTokens.map((t, i) => (
+                    <p key={t}>
+                      <span className="text-muted">team {i + 1}:</span> {t}
                       <button
                         type="button"
-                        className="mt-1 text-[11px] text-accent underline"
+                        className="ml-2 text-secondary underline"
                         onClick={() => {
-                          void copyText(displayUrls.teamJoinApi[i] ?? "");
-                          flashCopied(`Team API ${i + 1}`);
+                          void copyText(t);
+                          flashCopied(`team-token-${i + 1}`);
                         }}
                       >
-                        Kopier API-URL
+                        kopier
                       </button>
-                    </div>
-                  </div>
-                  {qrMap[`team_${i}`] ? (
-                    <Image
-                      src={qrMap[`team_${i}`]}
-                      alt=""
-                      width={140}
-                      height={140}
-                      unoptimized
-                      className="rounded-lg border border-accent-soft bg-background p-1"
-                    />
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <details className="rounded-xl border border-accent-soft bg-background/60 px-4 py-3">
-            <summary className="cursor-pointer text-sm font-medium text-foreground">
-              Tekniske token (hemmelige)
-            </summary>
-            <p className="mt-2 text-xs text-muted">
-              Vis kun for fasilitator — ikke del på skjerm. Brukes som query-parameter og i
-              klienter.
-            </p>
-            <div className="mt-3 space-y-2 font-mono text-xs">
-              <p>
-                <span className="text-muted">nh:</span> {created.newHirePlainToken}
-                <button
-                  type="button"
-                  className="ml-2 text-accent underline"
-                  onClick={() => {
-                    void copyText(created.newHirePlainToken);
-                    flashCopied("nh-token");
-                  }}
-                >
-                  kopier
-                </button>
-              </p>
-              {created.teamJoinPlainTokens.map((t, i) => (
-                <p key={t}>
-                  <span className="text-muted">team {i + 1}:</span> {t}
-                  <button
-                    type="button"
-                    className="ml-2 text-accent underline"
-                    onClick={() => {
-                      void copyText(t);
-                      flashCopied(`team-token-${i + 1}`);
-                    }}
-                  >
-                    kopier
-                  </button>
-                </p>
-              ))}
-            </div>
-          </details>
-        </section>
-      ) : null}
+                    </p>
+                  ))}
+                </div>
+              </details>
+            </section>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }
@@ -642,18 +658,18 @@ function UrlQrBlock({
   onCopy: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-accent-soft bg-background/70 p-4">
+    <div className="flex flex-col gap-3 rounded-2xl bg-surface-white p-5 shadow-sm">
       <div>
-        <h3 className="font-semibold text-foreground">{title}</h3>
+        <h3 className="font-bold text-foreground">{title}</h3>
         <p className="mt-1 text-xs text-muted">{description}</p>
       </div>
-      <code className="break-all rounded-lg bg-accent-soft/40 px-3 py-2 font-mono text-xs">
+      <code className="break-all rounded-xl bg-surface-container-low px-3 py-2 font-mono text-xs">
         {url}
       </code>
       <button
         type="button"
         onClick={onCopy}
-        className="self-start text-xs font-semibold text-accent underline-offset-2 hover:underline"
+        className="self-start text-xs font-bold text-secondary underline-offset-2 hover:underline"
       >
         Kopier URL
       </button>
@@ -664,7 +680,7 @@ function UrlQrBlock({
           width={160}
           height={160}
           unoptimized
-          className="rounded-lg border border-accent-soft bg-background p-1"
+          className="rounded-2xl border border-outline-variant/20 bg-surface-white p-1"
         />
       ) : null}
     </div>
