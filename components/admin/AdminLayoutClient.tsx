@@ -11,7 +11,7 @@ function AuthGate({ children }: { children: ReactNode }) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <section className="w-full max-w-md rounded-3xl bg-surface-white p-8 shadow-sm">
-          <h2 className="text-lg font-bold text-foreground">Logg inn</h2>
+          <h2 className="text-lg font-bold text-foreground">Innlogging</h2>
           <p className="mt-2 text-sm text-muted">
             Lim inn{" "}
             <code className="rounded-lg bg-surface-container-highest px-1.5 py-0.5 font-mono text-xs">
