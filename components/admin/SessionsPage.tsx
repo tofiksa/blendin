@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdminAuth } from "@/components/admin/AdminAuthProvider";
 import { AdminQuizQuestionPreview } from "@/components/admin/AdminQuizQuestionPreview";
+import { SessionControls } from "@/components/admin/SessionControls";
 import { demoQuizTemplateName } from "@/lib/constants";
 
 type TenantPreview = {
@@ -396,6 +397,12 @@ export function SessionsPage() {
             <span className="ml-auto rounded-full bg-surface-container-highest px-3 py-1 font-mono text-xs text-muted">
               {created.publicId}
             </span>
+          </div>
+
+          {/* Session state controls */}
+          <div className="mt-6 rounded-2xl bg-surface-white p-5 shadow-sm">
+            <h3 className="mb-4 font-bold text-foreground">Øktstyring</h3>
+            <SessionControls publicId={created.publicId} initialState="draft" />
           </div>
           {copiedHint ? (
             <p className="mt-2 text-sm text-secondary">Kopierte: {copiedHint}</p>

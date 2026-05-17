@@ -1,21 +1,21 @@
 export default function Home() {
   return (
-    <div className="relative flex min-h-dvh flex-col items-center justify-between overflow-hidden bg-primary-container text-accent-soft">
+    <div className="relative flex min-h-dvh flex-col items-center justify-between overflow-hidden bg-background text-foreground">
       {/* Decorative background glows */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-30">
-        <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-secondary-container/20 blur-[80px]" />
-        <div className="absolute top-1/2 -right-32 h-96 w-96 rounded-full bg-accent-soft/10 blur-[100px]" />
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-20">
+        <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full bg-secondary-container/30 blur-[80px]" />
+        <div className="absolute top-1/2 -right-32 h-96 w-96 rounded-full bg-accent-soft/20 blur-[100px]" />
       </div>
 
       {/* Main content */}
       <main className="z-10 flex max-w-md flex-1 flex-col items-center justify-center px-6 pb-32">
         {/* Hero icon */}
         <div className="mb-8 flex items-center justify-center">
-          <div className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-2 border-accent-soft/20 bg-accent-soft/5">
+          <div className="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-2 border-outline-variant/40 bg-surface-container-low">
             <svg
               viewBox="0 0 48 48"
               fill="none"
-              className="h-16 w-16 text-accent-soft"
+              className="h-16 w-16 text-secondary"
               aria-hidden="true"
             >
               {/* Steam */}
@@ -61,21 +61,19 @@ export default function Home() {
         </div>
 
         {/* Title */}
-        <h1 className="text-center text-4xl font-semibold tracking-tight text-accent-soft">
-          Blend-In
-        </h1>
-        <p className="mt-2 text-center text-xl text-accent-soft/80">Tid for en pause.</p>
-        <p className="mt-4 max-w-[280px] text-center text-lg text-accent-soft/70">
+        <h1 className="text-center text-4xl font-semibold tracking-tight text-primary">Blend-In</h1>
+        <p className="mt-2 text-center text-xl text-foreground">Tid for en pause.</p>
+        <p className="mt-4 max-w-[280px] text-center text-lg text-muted">
           Et stille rom for team og ny kollega.
         </p>
       </main>
 
       {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-primary-container via-primary-container to-transparent px-6 pb-8 pt-12">
+      <div className="fixed bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-background via-background to-transparent px-6 pb-8 pt-12">
         <div className="mx-auto max-w-md">
           <a
             href="/admin"
-            className="flex h-[72px] w-full items-center justify-center rounded-[24px] bg-secondary-container font-semibold text-primary-container text-lg uppercase tracking-wide shadow-[0_12px_32px_-4px_rgba(18,26,36,0.25)] transition-all hover:brightness-110 active:translate-y-1 active:shadow-[0_2px_4px_-1px_rgba(18,26,36,0.1)]"
+            className="flex h-[72px] w-full items-center justify-center rounded-[24px] bg-secondary font-semibold text-surface-white text-lg uppercase tracking-wide shadow-[0_12px_32px_-4px_rgba(18,26,36,0.18)] transition-all hover:brightness-110 active:translate-y-1 active:shadow-[0_2px_4px_-1px_rgba(18,26,36,0.1)]"
           >
             Start Kaffepausen
           </a>

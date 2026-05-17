@@ -9,7 +9,8 @@ type AdminAuthCtx = {
   bearer: string;
   setBearer: (v: string) => void;
   bearerSaved: boolean;
-  saveBearer: () => void;
+  login: (secret: string) => void;
+  logout: () => void;
   authHeaders: () => HeadersInit;
 };
 
@@ -27,7 +28,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const s = sessionStorage.getItem(STORAGE_KEY);
+      const s = localStorage.getItem(STORAGE_KEY);
       if (s) {
         setBearer(s);
         setBearerSaved(true);
@@ -37,16 +38,27 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const saveBearer = useCallback(() => {
-    const t = bearer.trim();
+  const login = useCallback((secret: string) => {
+    const t = secret.trim();
+    setBearer(t);
     try {
-      if (t) sessionStorage.setItem(STORAGE_KEY, t);
-      else sessionStorage.removeItem(STORAGE_KEY);
+      if (t) localStorage.setItem(STORAGE_KEY, t);
+      else localStorage.removeItem(STORAGE_KEY);
     } catch {
       /* ignore */
     }
     setBearerSaved(Boolean(t));
-  }, [bearer]);
+  }, []);
+
+  const logout = useCallback(() => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+    setBearer("");
+    setBearerSaved(false);
+  }, []);
 
   const authHeaders = useCallback((): HeadersInit => {
     const secret = bearer.trim();
@@ -54,7 +66,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   }, [bearer]);
 
   return (
-    <Ctx.Provider value={{ bearer, setBearer, bearerSaved, saveBearer, authHeaders }}>
+    <Ctx.Provider value={{ bearer, setBearer, bearerSaved, login, logout, authHeaders }}>
       {children}
     </Ctx.Provider>
   );

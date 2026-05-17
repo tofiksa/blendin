@@ -81,7 +81,7 @@ export function PresenterExperience({ publicId }: Props) {
 
   useEffect(() => {
     try {
-      const s = sessionStorage.getItem(STORAGE_KEY);
+      const s = localStorage.getItem(STORAGE_KEY);
       if (s) {
         setBearer(s);
         setBearerReady(true);
@@ -217,8 +217,8 @@ export function PresenterExperience({ publicId }: Props) {
   const saveBearer = useCallback(() => {
     const t = bearer.trim();
     try {
-      if (t) sessionStorage.setItem(STORAGE_KEY, t);
-      else sessionStorage.removeItem(STORAGE_KEY);
+      if (t) localStorage.setItem(STORAGE_KEY, t);
+      else localStorage.removeItem(STORAGE_KEY);
     } catch {
       /* ignore */
     }

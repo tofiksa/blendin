@@ -5,7 +5,7 @@ import { AdminAuthProvider, useAdminAuth } from "@/components/admin/AdminAuthPro
 import { AdminNav } from "@/components/admin/AdminNav";
 
 function AuthGate({ children }: { children: ReactNode }) {
-  const { bearer, setBearer, bearerSaved, saveBearer } = useAdminAuth();
+  const { bearer, setBearer, bearerSaved, login } = useAdminAuth();
 
   if (!bearerSaved) {
     return (
@@ -25,12 +25,13 @@ function AuthGate({ children }: { children: ReactNode }) {
               autoComplete="off"
               value={bearer}
               onChange={(e) => setBearer(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && bearer.trim() && login(bearer)}
               className="w-full rounded-2xl border-0 bg-surface-container-low px-4 py-3 text-sm text-foreground outline-none ring-2 ring-transparent focus:ring-secondary/40"
               placeholder="Lim inn hemmelighet ..."
             />
             <button
               type="button"
-              onClick={() => saveBearer()}
+              onClick={() => login(bearer)}
               disabled={!bearer.trim()}
               className="rounded-2xl bg-secondary px-5 py-3 text-sm font-bold text-surface-white disabled:opacity-40"
             >

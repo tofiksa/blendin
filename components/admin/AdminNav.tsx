@@ -7,6 +7,7 @@ const navItems = [
   { href: "/admin", label: "Økter", icon: "🎯" },
   { href: "/admin/tenants", label: "Tenants", icon: "🏢" },
   { href: "/admin/quiz", label: "Quiz-maler", icon: "📝" },
+  { href: "/admin/innstillinger", label: "Innstillinger", icon: "⚙️" },
 ] as const;
 
 export function AdminNav() {
