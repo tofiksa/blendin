@@ -1,12 +1,5 @@
-import type { Metadata } from "next";
-import { AdminDashboard } from "@/components/admin/AdminDashboard";
-
-export const metadata: Metadata = {
-  title: "Admin",
-  description: "Opprett Blend-In-økter med lenker og QR-koder.",
-  robots: { index: false, follow: false },
-};
+import { SessionsPage } from "@/components/admin/SessionsPage";
 
 export default function AdminPage() {
-  return <AdminDashboard />;
+  return <SessionsPage />;
 }
