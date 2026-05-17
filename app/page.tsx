@@ -62,8 +62,9 @@ export default function Home() {
 
         {/* Title */}
         <h1 className="text-center text-4xl font-semibold tracking-tight text-accent-soft">
-          Tid for en pause.
+          Blend-In
         </h1>
+        <p className="mt-2 text-center text-xl text-accent-soft/80">Tid for en pause.</p>
         <p className="mt-4 max-w-[280px] text-center text-lg text-accent-soft/70">
           Et stille rom for team og ny kollega.
         </p>
