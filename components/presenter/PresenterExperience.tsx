@@ -300,7 +300,7 @@ export function PresenterExperience({ publicId }: Props) {
   }, [currentResult]);
 
   return (
-    <div className="relative flex min-h-dvh flex-col bg-primary-container text-primary">
+    <div className="presenter-shell relative flex min-h-dvh flex-col bg-primary-container text-primary">
       {/* Top bar */}
       <header className="flex shrink-0 items-center justify-between gap-4 px-8 py-5 lg:px-12">
         <div className="flex items-center gap-3">
@@ -357,9 +357,9 @@ export function PresenterExperience({ publicId }: Props) {
       </header>
 
       {/* Main content area */}
-      <div className="flex flex-1 flex-col gap-8 px-8 pb-8 lg:flex-row lg:items-center lg:gap-16 lg:px-12">
+      <div className="flex flex-1 flex-col gap-10 px-8 pb-8 lg:flex-row lg:items-start lg:gap-12 lg:px-12 xl:gap-16">
         {/* Left: content */}
-        <main className="flex flex-1 flex-col justify-center lg:max-w-[60%]">
+        <main className="flex min-w-0 flex-col justify-center lg:w-1/2 lg:min-w-0 lg:pr-6 xl:pr-10">
           {!snapshot && !streamError ? (
             <p className="text-xl text-secondary-container/60">Laster koppen ...</p>
           ) : null}
@@ -451,7 +451,7 @@ export function PresenterExperience({ publicId }: Props) {
                         <li
                           key={opt.id}
                           className={`relative overflow-hidden rounded-3xl px-6 py-5 ${
-                            isChosen ? "bg-secondary/80" : "bg-secondary-container/15"
+                            isChosen ? "bg-secondary/90" : "bg-surface-white/10"
                           }`}
                         >
                           {/* Vote bar */}
@@ -464,13 +464,13 @@ export function PresenterExperience({ publicId }: Props) {
                           />
                           <div className="relative flex flex-wrap items-center justify-between gap-4">
                             <span
-                              className={`text-xl font-bold ${isChosen ? "text-primary-container" : "text-secondary-container"}`}
+                              className={`text-xl font-bold ${isChosen ? "text-primary-container" : "text-primary"}`}
                             >
                               {opt.label}
                             </span>
                             <div className="flex flex-wrap items-center gap-2">
                               <span
-                                className={`font-mono text-lg ${isChosen ? "text-primary-container/80" : "text-secondary-container/60"}`}
+                                className={`font-mono text-lg ${isChosen ? "text-primary-container/80" : "text-primary/70"}`}
                               >
                                 {n}
                               </span>
@@ -530,10 +530,10 @@ export function PresenterExperience({ publicId }: Props) {
           ) : null}
         </main>
 
-        {/* Right: coffee cup */}
-        <aside className="flex shrink-0 flex-col items-center justify-center lg:w-[30%]">
+        {/* Right: harmony cup (sekundær i forhold til spørsmål/reveal) */}
+        <aside className="flex w-full min-w-0 flex-col items-center justify-center lg:w-1/2 lg:pl-6 lg:sticky lg:top-28 lg:self-start xl:pl-10">
           <CoffeeCup fillPercent={cupFill} reducedMotion={reducedMotion} />
-          <p className="mt-6 max-w-[14rem] text-center text-sm text-secondary-container/50">
+          <p className="mt-4 w-full max-w-md text-center text-sm leading-snug text-secondary-container/50 lg:max-w-none">
             Koppen speiler hvor ofte teamets flertall traff nyansatt — ikke poeng eller rangering.
           </p>
         </aside>

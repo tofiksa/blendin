@@ -2,203 +2,176 @@
 
 import { useId } from "react";
 
+/** Flat blend-kopp — matcher referansekort (tykk kontur, U-form, elliptisk skum). */
 export function CoffeeCup({
   fillPercent,
-  reducedMotion,
+  reducedMotion: _reducedMotion,
 }: {
   fillPercent: number;
   reducedMotion: boolean;
 }) {
   const fill = Math.max(0, Math.min(100, fillPercent));
-  const innerTop = 44;
-  const innerH = 118;
-  const liquidH = Math.max(4, (fill / 100) * innerH);
-  const liquidTop = innerTop + innerH - liquidH;
+  const displayPercent = Math.round(fill);
+
+  const cx = 100;
+  const rimY = 108;
+  const left = 46;
+  const right = 154;
+  const bottom = 228;
+  const innerPad = 9;
+  const innerTop = rimY + innerPad;
+  const innerBottom = bottom - innerPad;
+  const innerH = innerBottom - innerTop;
+  const liquidH = Math.max(0, (fill / 100) * innerH);
+  const liquidTop = innerBottom - liquidH;
 
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const clipId = `blendin-cup-inner-${uid}`;
-  const gradCoffee = `blendin-coffee-grad-${uid}`;
-  const gradCup = `blendin-cup-body-${uid}`;
-  const steamBlur = `blendin-steam-blur-${uid}`;
-  const steamGrad = `blendin-steam-grad-${uid}`;
 
-  /** Damp synlig når det er «noe i koppen» (lobby 8 % og oppover); styrkes med harmoni-fyll. */
-  const steamGroupOpacity = fill <= 0 ? 0 : Math.min(0.92, 0.28 + (fill / 100) * 0.62);
+  const ink = "var(--foreground)";
+  const coffee = "#a67c52";
+  const coffeeDeep = "#6f4f3a";
+  const label = "var(--primary)";
+  const strokeW = 8;
+
+  const cupOutline = `M ${left} ${rimY}
+    L ${left} ${bottom - 16}
+    Q ${left} ${bottom} ${cx} ${bottom}
+    Q ${right} ${bottom} ${right} ${bottom - 16}
+    L ${right} ${rimY}`;
+
+  /** C-formet håndtak — ca. 1/3 av koppbredden ut til høyre, litt høyere spenn. */
+  const cupH = bottom - rimY;
+  const handleTop = rimY + cupH * 0.22;
+  const handleBottom = rimY + cupH * 0.78;
+  const handleR = (handleBottom - handleTop) / 2;
+  const handleRx = handleR * 1.15;
+  const handlePath = `M ${right} ${handleTop} A ${handleRx} ${handleR} 0 0 1 ${right} ${handleBottom}`;
+
+  const innerClip = `M ${left + innerPad} ${innerTop}
+    L ${left + innerPad} ${innerBottom - 12}
+    Q ${left + innerPad} ${innerBottom} ${cx} ${innerBottom}
+    Q ${right - innerPad} ${innerBottom} ${right - innerPad} ${innerBottom - 12}
+    L ${right - innerPad} ${innerTop}
+    Z`;
+
+  const liquidRx = (right - left) / 2 - innerPad - 2;
 
   return (
     <>
-      {/* biome-ignore lint/a11y/noSvgWithoutTitle: ren dekorasjon; forklares i brodteksten */}
+      {/* biome-ignore lint/a11y/noSvgWithoutTitle: dekorativ */}
       <svg
-        viewBox="0 0 140 200"
-        className={`w-full max-w-[16rem] drop-shadow-lg ${reducedMotion ? "" : "motion-safe:[&_rect.liquid]:transition-[y,height] motion-safe:[&_rect.liquid]:duration-900 motion-safe:[&_rect.liquid]:ease-out motion-safe:[&_ellipse.liquid-surface]:transition-[cy] motion-safe:[&_ellipse.liquid-surface]:duration-900 motion-safe:[&_ellipse.liquid-surface]:ease-out"}`}
+        viewBox="0 0 200 280"
+        preserveAspectRatio="xMidYMid meet"
+        className={`mx-auto block h-auto w-[min(50vw,100%)] min-w-[11rem] max-h-[min(72vh,36rem)] max-w-full sm:min-w-[14rem] lg:w-full lg:min-w-0 ${fill > 0 ? "motion-safe:[&_rect.liquid]:transition-[y,height] motion-safe:[&_rect.liquid]:duration-900 motion-safe:[&_rect.liquid]:ease-out motion-safe:[&_ellipse.liquid-surface]:transition-[cy] motion-safe:[&_ellipse.liquid-surface]:duration-900 motion-safe:[&_ellipse.liquid-surface]:ease-out" : ""}`}
         aria-hidden
       >
         <defs>
           <clipPath id={clipId}>
-            <rect x="26" y={innerTop} width="72" height={innerH} rx="12" />
+            <path d={innerClip} />
           </clipPath>
-          <linearGradient id={gradCoffee} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--secondary-container)" stopOpacity="0.98" />
-            <stop offset="55%" stopColor="var(--secondary)" stopOpacity="0.88" />
-            <stop offset="100%" stopColor="var(--secondary)" stopOpacity="0.92" />
-          </linearGradient>
-          <linearGradient id={gradCup} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--secondary-container)" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="var(--secondary-container)" stopOpacity="0.15" />
-          </linearGradient>
-          <radialGradient id={steamGrad} cx="50%" cy="80%" r="65%">
-            <stop offset="0%" stopColor="var(--foreground)" stopOpacity="0.45" />
-            <stop offset="55%" stopColor="var(--foreground)" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="var(--foreground)" stopOpacity="0" />
-          </radialGradient>
-          <filter id={steamBlur} x="-120%" y="-120%" width="340%" height="340%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2.6" />
-          </filter>
         </defs>
 
-        {/* Saucer (bak) */}
-        <ellipse cx="62" cy="180" rx="52" ry="8" fill="var(--secondary-container)" opacity="0.12" />
-
-        {/* Cup body */}
+        {/* Håndtak */}
         <path
-          d="M18 34 C18 26 24 20 34 20 H106 C116 20 122 26 122 34 V156 C122 166 114 174 104 174 H36 C26 174 18 166 18 156 Z"
-          fill={`url(#${gradCup})`}
-        />
-
-        <path
-          d="M18 34 C18 26 24 20 34 20 H106 C116 20 122 26 122 34 V156 C122 166 114 174 104 174 H36 C26 174 18 166 18 156 Z"
+          d={handlePath}
           fill="none"
-          stroke="var(--secondary-container)"
-          strokeWidth="3"
-          strokeLinejoin="round"
-          opacity="0.6"
-        />
-
-        <path
-          d="M122 52 C138 52 146 68 146 92 C146 114 134 132 118 134"
-          fill="none"
-          stroke="var(--secondary-container)"
-          strokeWidth="3"
+          stroke={ink}
+          strokeWidth={strokeW}
           strokeLinecap="round"
-          opacity="0.5"
+          strokeLinejoin="round"
         />
 
-        {/* Flytende kaffe + lys overflate som følger nivået */}
-        <g clipPath={`url(#${clipId})`}>
-          <rect
-            className="liquid"
-            x="26"
-            y={liquidTop}
-            width="72"
-            height={liquidH}
-            rx="12"
-            fill={`url(#${gradCoffee})`}
-          />
-          {fill > 1 ? (
-            <ellipse
-              className="liquid-surface"
-              cx="62"
-              cy={liquidTop + Math.min(7, liquidH * 0.12)}
-              rx={Math.min(33, 26 + (liquidH / innerH) * 8)}
-              ry={Math.max(2.5, Math.min(5.5, liquidH * 0.045))}
-              fill="var(--surface-white)"
-              opacity="0.22"
+        {/* Kaffefyll */}
+        {fill > 0 ? (
+          <g clipPath={`url(#${clipId})`}>
+            <rect
+              className="liquid"
+              x={left + innerPad}
+              y={liquidTop}
+              width={right - left - innerPad * 2}
+              height={liquidH}
+              fill={coffee}
             />
-          ) : null}
-        </g>
+            <path
+              d={`M ${left + innerPad} ${bottom - 28}
+                L ${left + innerPad} ${innerBottom}
+                Q ${cx} ${innerBottom + 2} ${right - innerPad} ${innerBottom}
+                L ${right - innerPad} ${bottom - 28}
+                Z`}
+              fill={coffeeDeep}
+              opacity="0.5"
+            />
+            {liquidH > 8 ? (
+              <ellipse
+                className="liquid-surface"
+                cx={cx}
+                cy={liquidTop}
+                rx={liquidRx}
+                ry={5.5}
+                fill={coffeeDeep}
+              />
+            ) : null}
+          </g>
+        ) : null}
 
-        {/* Kant */}
-        <ellipse
-          cx="62"
-          cy="38"
-          rx="42"
-          ry="10"
+        {/* Glass-effekt: litt kaffe synlig forbi bunnhjørner */}
+        {fill > 12 ? (
+          <path
+            d={`M ${left + 2} ${bottom - 20}
+              Q ${left - 4} ${bottom + 3} ${cx} ${bottom + 3}
+              Q ${right + 4} ${bottom + 3} ${right - 2} ${bottom - 20}
+              L ${right - innerPad} ${innerBottom - 2}
+              Q ${cx} ${innerBottom - 2} ${left + innerPad} ${innerBottom - 2}
+              Z`}
+            fill={coffee}
+            opacity="0.9"
+          />
+        ) : null}
+
+        {/* Kopp-kontur + flat topp */}
+        <path
+          d={cupOutline}
           fill="none"
-          stroke="var(--secondary-container)"
-          strokeWidth="2.5"
-          opacity="0.35"
+          stroke={ink}
+          strokeWidth={strokeW}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <line
+          x1={left - 2}
+          y1={rimY}
+          x2={right + 2}
+          y2={rimY}
+          stroke={ink}
+          strokeWidth={strokeW}
+          strokeLinecap="round"
         />
 
-        {/* Damp: over koppen, stiger opp og sveiver litt */}
-        {fill >= 8 && !reducedMotion ? (
-          <g
-            filter={`url(#${steamBlur})`}
-            opacity={steamGroupOpacity}
-            style={{ pointerEvents: "none" }}
-          >
-            <SteamWisp fillGradientId={steamGrad} cx={50} begin="0s" dur="2.9s" />
-            <SteamWisp fillGradientId={steamGrad} cx={58} begin="0.55s" dur="3.35s" />
-            <SteamWisp fillGradientId={steamGrad} cx={66} begin="1.05s" dur="3.1s" />
-            <SteamWisp fillGradientId={steamGrad} cx={74} begin="1.65s" dur="3.55s" />
-            <SteamWisp fillGradientId={steamGrad} cx={62} begin="2.2s" dur="3.25s" />
-          </g>
-        ) : null}
-
-        {reducedMotion && fill >= 8 ? (
-          <g opacity={steamGroupOpacity * 0.35} style={{ pointerEvents: "none" }}>
-            <ellipse cx="56" cy="30" rx="6" ry="10" fill={`url(#${steamGrad})`} />
-            <ellipse cx="68" cy="28" rx="5" ry="9" fill={`url(#${steamGrad})`} opacity="0.85" />
-          </g>
-        ) : null}
+        {/* Tekst over alt */}
+        <text
+          x={cx}
+          y={58}
+          textAnchor="middle"
+          fill={ink}
+          fontSize="40"
+          fontWeight="700"
+          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+        >
+          {displayPercent}%
+        </text>
+        <text
+          x={cx}
+          y={84}
+          textAnchor="middle"
+          fill={label}
+          fontSize="11"
+          fontWeight="600"
+          letterSpacing="0.38em"
+        >
+          BLEND
+        </text>
       </svg>
     </>
-  );
-}
-
-function SteamWisp({
-  cx,
-  begin,
-  dur,
-  fillGradientId,
-}: {
-  cx: number;
-  begin: string;
-  dur: string;
-  fillGradientId: string;
-}) {
-  const y0 = 40;
-  return (
-    <ellipse cx={cx} cy={y0} rx="5.5" ry="10" fill={`url(#${fillGradientId})`} opacity="0">
-      <animate
-        attributeName="opacity"
-        values="0;0.5;0.65;0.45;0;0"
-        keyTimes="0;0.15;0.4;0.65;0.9;1"
-        dur={dur}
-        repeatCount="indefinite"
-        begin={begin}
-      />
-      <animate
-        attributeName="cy"
-        values={`${y0};${y0 - 18};${y0 - 42};${y0 - 72};${y0 - 92}`}
-        keyTimes="0;0.22;0.48;0.78;1"
-        dur={dur}
-        repeatCount="indefinite"
-        begin={begin}
-        calcMode="spline"
-        keySplines="0.4 0 0.2 1; 0.4 0 0.2 1; 0.4 0 0.2 1; 0.4 0 0.2 1"
-      />
-      <animate
-        attributeName="cx"
-        values={`${cx};${cx - 4};${cx + 3};${cx - 2};${cx + 1}`}
-        keyTimes="0;0.25;0.5;0.75;1"
-        dur={dur}
-        repeatCount="indefinite"
-        begin={begin}
-      />
-      <animate
-        attributeName="rx"
-        values="5.5;7;6;5;4.5"
-        dur={dur}
-        repeatCount="indefinite"
-        begin={begin}
-      />
-      <animate
-        attributeName="ry"
-        values="10;14;16;12;8"
-        dur={dur}
-        repeatCount="indefinite"
-        begin={begin}
-      />
-    </ellipse>
   );
 }

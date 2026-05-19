@@ -75,6 +75,24 @@ body {
   color: var(--foreground);
 }
 
+/**
+ * Big-screen presenter: always warm dark canvas + light copy.
+ * OS dark mode must not remap tokens here (brown-on-brown was unreadable).
+ */
+.presenter-shell {
+  --foreground: #f4ebe3;
+  --primary: #ffca98;
+  --primary-container: #3c2a21;
+  --secondary: #c9a066;
+  --secondary-container: #ffca98;
+  --surface-white: #ffffff;
+  --surface-container: #4a382f;
+  --surface-container-low: #3c2a21;
+  --surface-container-high: #574238;
+  --outline-variant: #9e8b7f;
+  --error: #ffb4ab;
+}
+
 /* Shared animation utilities */
 @keyframes fill-up {
   0% {
