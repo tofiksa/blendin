@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAdminStoredSessions } from "@/hooks/useAdminStoredSessions";
 
 const navItems = [
-  { href: "/admin", label: "Økter", icon: "🎯" },
+  { href: "/admin", label: "Opprett økt", icon: "🎯" },
+  { href: "/admin/pagaende", label: "Pågående økter", icon: "☕" },
   { href: "/admin/tenants", label: "Tenants", icon: "🏢" },
   { href: "/admin/quiz", label: "Quiz-maler", icon: "📝" },
   { href: "/admin/innstillinger", label: "Innstillinger", icon: "⚙️" },
@@ -12,6 +14,8 @@ const navItems = [
 
 export function AdminNav() {
   const pathname = usePathname();
+  const { sessions, ready } = useAdminStoredSessions();
+  const ongoingCount = ready ? sessions.length : 0;
 
   return (
     <nav className="flex gap-1 rounded-2xl bg-surface-container-low p-1.5">
@@ -30,6 +34,11 @@ export function AdminNav() {
           >
             <span>{item.icon}</span>
             {item.label}
+            {item.href === "/admin/pagaende" && ongoingCount > 0 ? (
+              <span className="ml-1 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-bold text-surface-white">
+                {ongoingCount}
+              </span>
+            ) : null}
           </Link>
         );
       })}

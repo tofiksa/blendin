@@ -58,9 +58,10 @@ const ACTION_LABELS: Partial<Record<SessionState, string>> = {
 type Props = {
   publicId: string;
   initialState?: SessionState;
+  onStateChange?: (state: SessionState) => void;
 };
 
-export function SessionControls({ publicId, initialState = "draft" }: Props) {
+export function SessionControls({ publicId, initialState = "draft", onStateChange }: Props) {
   const { authHeaders } = useAdminAuth();
   const [currentState, setCurrentState] = useState<SessionState>(initialState);
   const [busy, setBusy] = useState(false);
@@ -90,6 +91,7 @@ export function SessionControls({ publicId, initialState = "draft" }: Props) {
           throw new Error(msg);
         }
         setCurrentState(newState);
+        onStateChange?.(newState);
         setSuccess(`Økt oppdatert til: ${STATE_LABELS[newState]}`);
         setTimeout(() => setSuccess(null), 3000);
       } catch (e) {
@@ -98,7 +100,7 @@ export function SessionControls({ publicId, initialState = "draft" }: Props) {
         setBusy(false);
       }
     },
-    [publicId, authHeaders],
+    [publicId, authHeaders, onStateChange],
   );
 
   const available = nextStates(currentState);
